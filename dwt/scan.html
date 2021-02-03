@@ -50,15 +50,17 @@
 					</select>							
 				</div>
 				<div id="desktopscan">
-					<select size="1" id="source" style="position: relative; width: 220px;"></select>
 					<div>
 						<label>
 							<input id="ShowUI" type="checkbox">Show UI</label>
 						<label>
 							<input id="ADF" type="checkbox" checked="checked">Auto Feeder</label>
 					</div>
+					<select size="1" id="source" style="position: relative; width: 220px;"></select>
+					<input onclick="Scan();" type="button" value="Local Scan">
 
-					<input onclick="Scan();" type="button" value="Scan">
+
+					
 				</div>
 				<div id="remotescan">
 				    <select class="source" size="1" id="remote">
@@ -148,6 +150,7 @@
 					}
 				}, function (ex) {
 					console.log(ex.message);
+					SetIfWebcamPlayVideo(false);
 				});	
 					
 					
