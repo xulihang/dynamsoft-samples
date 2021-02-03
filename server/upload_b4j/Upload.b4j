@@ -1,0 +1,43 @@
+﻿AppType=StandardJava
+Build1=Default,b4j.example
+Group=Default Group
+Library1=jcore
+Library2=jserver
+Module1=HttpsFilter
+Module2=Upload
+NumberOfFiles=0
+NumberOfLibraries=2
+NumberOfModules=2
+Version=8.8
+@EndOfDesignText@
+#Region Project Attributes 
+	#CommandLineArgs:
+	#MergeLibraries: True 
+#End Region
+
+Sub Process_Globals
+	Public srvr As Server
+End Sub
+
+Sub AppStart (Args() As String)
+	srvr.Initialize("srvr")
+	srvr.Port = 80
+	srvr.StaticFilesFolder = File.Combine(File.DirApp, "www")
+	srvr.AddHandler("/upload", "Upload", False)
+	ConfigureSSL(443)
+	srvr.Start
+	StartMessageLoop
+	'open browser and navigate to: http://127.0.0.1:51042/
+End Sub
+
+Private Sub ConfigureSSL (SslPort As Int)
+	'example of SSL connector configuration
+	Dim ssl As SslConfiguration
+	ssl.Initialize
+	ssl.SetKeyStorePath(File.DirApp, "keystore") 'path to keystore file
+	ssl.KeyStorePassword = "123456"
+	ssl.KeyManagerPassword = "123456"
+	srvr.SetSslConfiguration(ssl, SslPort)
+	'add filter to redirect all traffic from http to https (optional)
+	srvr.AddFilter("/*", "HttpsFilter", False)
+End Sub
