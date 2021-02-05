@@ -129,50 +129,14 @@
 		
         function Dynamsoft_OnReady() {
 			DWObject = Dynamsoft.WebTwainEnv.GetWebTwain('dwtcontrolContainer'); // Get the Dynamic Web TWAIN object that is embeded in the div with id 'dwtcontrolContainer'
-		    DWObject.Viewer.width="100%";
 			initRemoteDWT(ip.value);
             if (DWObject) {
+			    DWObject.Viewer.width="100%";
 				DWObject.SetViewMode(2, 2);
-				
                 var count = DWObject.SourceCount; // Get how many sources are installed in the system
-
                 for (var i = 0; i < count; i++)
                     document.getElementById("source").options.add(new Option(DWObject.GetSourceNameItems(i), i)); // Add the sources in a drop-down list
-					
-				DWObject.Addon.Camera.play(null, { width: 2560, height: 1440 },true).then(function (r) {
-					isVideoOn = true;
-					document.getElementById("captureButton").style.backgroundColor = "";
-					document.getElementById("captureButton").disabled = "";
-					document.getElementById("switchButton").value = "Hide Video";
-					return DWObject.Addon.Camera.getSourceList();
-			   }).then(function (sourceName) {
-					var iCount = sourceName.length;
-					for (var i = 0; i < iCount; i++) {
-						document.getElementById("camerasource").options.add(new Option(sourceName[i].label, sourceName[i].deviceId));
-					}
-					document.getElementById('source').onchange = function () {
-						var deviceId = document.getElementById("camerasource").options[document.getElementById("camerasource").selectedIndex].value;
-						DWObject.Addon.Camera.selectSource(deviceId).then(function () {
-							SetIfWebcamPlayVideo(true);
-							document.getElementById("captureButton").disabled = "";
-							document.getElementById("switchButton").style.display = '';
-						}, function (ex) { console.log(ex.message); });
-					}
-					return DWObject.Addon.Camera.getCurrentSource();
-				}).then(function (currentSource) {
-					var source = document.getElementById("camerasource");
-					for (var i = 0; i < source.options.length; i++) {
-						if (source.options[i].value == currentSource.deviceId) {
-							source.selectedIndex = i;
-							break;
-						}
-					}
-				}, function (ex) {
-					console.log(ex.message);
-					SetIfWebcamPlayVideo(false);
-				});	
-					
-					
+				SetIfWebcamPlayVideo(false);	
             }
         }
 		
@@ -224,48 +188,48 @@
 		}
 		
 		function CaptureImages() {
-        if (DWObject) {
-            DWObject.Addon.Camera.capture().then(function () {
-                DWObject.Viewer.render();
-				SetIfWebcamPlayVideo(false);
-            }, function (ex) {
-                console.log(ex.message);
-                SetIfWebcamPlayVideo(false);
-            });
-        }
-    }
+			if (DWObject) {
+				DWObject.Addon.Camera.capture().then(function () {
+					DWObject.Viewer.render();
+					SetIfWebcamPlayVideo(false);
+				}, function (ex) {
+					console.log(ex.message);
+					SetIfWebcamPlayVideo(false);
+				});
+			}
+		}
 
-    function SetIfWebcamPlayVideo(bShow) {
-        if (bShow) {
-            DWObject.Addon.Camera.play(null, { width: 2560, height: 1440 },true).then(function (r) {
-                isVideoOn = true;
-                document.getElementById("captureButton").style.backgroundColor = "";
-                document.getElementById("captureButton").disabled = "";
-                document.getElementById("switchButton").value = "Hide Video";
-            }, function (ex) {
-                console.log(ex.message);
+		function SetIfWebcamPlayVideo(bShow) {
+			if (bShow) {
+				DWObject.Addon.Camera.play(null, { width: 2560, height: 1440 },true).then(function (r) {
+					isVideoOn = true;
+					document.getElementById("captureButton").style.backgroundColor = "";
+					document.getElementById("captureButton").disabled = "";
+					document.getElementById("switchButton").value = "Hide Video";
+				}, function (ex) {
+					console.log(ex.message);
+					DWObject.Addon.Camera.stop();
+				});
+			}
+			else {
 				DWObject.Addon.Camera.stop();
-            });
-        }
-        else {
-            DWObject.Addon.Camera.stop();
-            isVideoOn = false;
-            document.getElementById("captureButton").style.backgroundColor = "#aaa";
-            document.getElementById("captureButton").disabled = "disabled";
-            document.getElementById("switchButton").value = "Show Video";
+				isVideoOn = false;
+				document.getElementById("captureButton").style.backgroundColor = "#aaa";
+				document.getElementById("captureButton").disabled = "disabled";
+				document.getElementById("switchButton").value = "Show Video";
 
-        }
-    }
+			}
+		}
 
-    function SwitchViews() {
-        if (isVideoOn == false) {
-            // continue the video
-            SetIfWebcamPlayVideo(true);
-        } else {
-            // stop the video
-            SetIfWebcamPlayVideo(false);
-        }
-    }
+		function SwitchViews() {
+			if (isVideoOn == false) {
+				// continue the video
+				SetIfWebcamPlayVideo(true);
+			} else {
+				// stop the video
+				SetIfWebcamPlayVideo(false);
+			}
+		}
 
 		function Scan(){
 			AcquireImage(false);
