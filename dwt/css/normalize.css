@@ -259,6 +259,8 @@ textarea {
   margin: 0; /* 3 */
 }
 
+select {max-width: 100%;}
+
 /**
  * Address `overflow` set to `hidden` in IE 8/9/10/11.
  */

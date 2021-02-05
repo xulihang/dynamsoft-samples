@@ -6,84 +6,102 @@
     <script type="text/javascript" src="Resources/dynamsoft.webtwain.initiate.js"></script>
     <script type="text/javascript" src="Resources/dynamsoft.webtwain.config.js"></script>
 	<script type="text/javascript" src="Resources/addon/dynamsoft.webtwain.addon.camera.js"></script>
+	<script type="text/javascript" src="Resources/addon/dynamsoft.webtwain.addon.pdf.js"></script>
 	<script type="text/javascript" src="common.js"></script>
+	<script type="text/javascript" src="tabs.js"></script>
 	<meta name="viewport" content="width=device-width,initial-scale=1.0,maximum-scale=1.0,user-scalable=0" />
 	<link rel="stylesheet" href="css/normalize.css">
     <link rel="stylesheet" href="css/skeleton.css">
+	<link rel="stylesheet" href="css/tabs.css">
 </head>
 
 <body>
   <div class="container">
     <div class="row">
         <div class="six columns">
-			<div id="dwtcontrolContainer" style="float:left;"></div>
+			<div id="dwtcontrolContainer" style="float:left;width:100%"></div>
 		</div>
 		<div class="six columns">
-			<div id="camera">
-				<h2>
-				    Camera
-				</h2>
-			    <select id="camerasource"></select>
-				<input id="captureButton" type="button" value="Capture Images" onclick="CaptureImages();" />
-				<input id="switchButton" type="button" value="Hide Video" onclick="SwitchViews();" />
+			<div class="tab">
+				<button class="tablinks" onclick="switchTab(event, 'camera')">Camera</button>
+				<button class="tablinks" onclick="switchTab(event, 'scan')">Scan</button>
+				<button class="tablinks" onclick="switchTab(event, 'local')">Local</button>
+				<button class="tablinks" onclick="switchTab(event, 'save')">Save</button>
+				<button class="tablinks" onclick="switchTab(event, 'move')">Move</button>
+				<button class="tablinks" onclick="switchTab(event, 'remove')">Remove</button>
 			</div>
-			<div id="scan">
-				<h2>
-					Scan
-				</h2>
-				<div>
-					<span>Pixel Type:</span>
-					<label for="BW">
-						<input name="PixelType" id="BW" type="radio">B&amp;W </label>
-					<label for="Gray">
-						<input name="PixelType" id="Gray" type="radio">Gray</label>
-					<label for="RGB">
-						<input name="PixelType" id="RGB" type="radio" checked="checked">Color</label>
+			<div>
+				<div id="camera" class="tabcontent">
+					<select id="camerasource"></select>
+					<input id="captureButton" type="button" value="Capture Images" onclick="CaptureImages();" />
+					<input id="switchButton" type="button" value="Hide Video" onclick="SwitchViews();" />
 				</div>
-				<div>
-					<span>Resolution:</span>
-					<select id="Resolution" size="1">
-						<option value="100">100</option>
-						<option value="150">150</option>
-						<option value="200">200</option>
-						<option value="300">300</option>
-					</select>							
-				</div>
-				<div id="desktopscan">
+				<div id="scan" class="tabcontent">
+					<div>
+						<span>Pixel Type:</span>
+						<div>						
+							<label for="BW">
+								<input name="PixelType" id="BW" type="radio">B&amp;W </label>
+							<label for="Gray">
+								<input name="PixelType" id="Gray" type="radio">Gray</label>
+							<label for="RGB">
+								<input name="PixelType" id="RGB" type="radio" checked="checked">Color</label>
+					    </div>
+					</div>
+					<div>
+						<span>Resolution:</span>
+						<select id="Resolution" size="1">
+							<option value="100">100</option>
+							<option value="150">150</option>
+							<option value="200">200</option>
+							<option value="300">300</option>
+						</select>					
+					</div>
 					<div>
 						<label>
 							<input id="ShowUI" type="checkbox">Show UI</label>
 						<label>
 							<input id="ADF" type="checkbox" checked="checked">Auto Feeder</label>
 					</div>
-					<select size="1" id="source" style="position: relative; width: 220px;"></select>
-					<input onclick="Scan();" type="button" value="Local Scan">
-
-
-					
+					<div id="desktopscan">
+						<select size="1" id="source" style="position: relative; width: 220px;"></select>
+						<input onclick="Scan();" type="button" value="Local Scan">
+						
+					</div>
+					<div id="remotescan">
+						<select class="source" size="1" id="remote">
+							<option>192.168.191.1</option>
+						</select>
+						<input onclick="RemoteScan();" type="button" value="Remote Scan">
+					</div>
 				</div>
-				<div id="remotescan">
-				    <select class="source" size="1" id="remote">
-						<option>192.168.191.1</option>
-					</select>
-					<input onclick="RemoteScan();" type="button" value="Remote Scan">
+				<div id="local" class="tabcontent">			
+					<input onclick="LoadLocal();" type="button" value="Load Images">				
 				</div>
-			</div>
-			<div>
-			    Default Filename: <input type="text" id="filename" value="DynamicWebTWAIN"/>
-				<input onclick="SaveWithFileDialog();" type="button" value="Save">
-				<label>
-					<input type="radio" value="jpg" name="ImageType" id="imgTypejpeg" />JPEG</label>
-				<label>
-					<input type="radio" value="tif" name="ImageType" id="imgTypetiff" />TIFF</label>
-				<label>
-					<input type="radio" value="pdf" name="ImageType" id="imgTypepdf" checked="checked" />PDF</label>
-			</div>
-			<div>
-				<input onclick="RemoveBlankImages();" type="button" value="Remove Blank Images" />
-				<input onclick="RemoveSelectedImages();" type="button" value="Remove Selected Images" />
-				<input onclick="RemoveAllImages()" type="button" value="Remove All Images" />
-			</div>
+				<div id="save"  class="tabcontent">
+					Default Filename: <input type="text" id="filename" value="DynamicWebTWAIN"/>
+					<input onclick="SaveWithFileDialog();" type="button" value="Save">
+					<div>
+						<label>
+							<input type="radio" value="jpg" name="ImageType" id="imgTypejpeg" />JPEG</label>
+						<label>
+							<input type="radio" value="tif" name="ImageType" id="imgTypetiff" />TIFF</label>
+						<label>
+							<input type="radio" value="pdf" name="ImageType" id="imgTypepdf" checked="checked" />PDF</label>
+					</div>
+				</div>
+				<div id="move"  class="tabcontent">
+					<input onclick="MoveSelectedUp();" type="button" value="Move Selected Up" />
+					<input onclick="MoveSelectedDown();" type="button" value="Move Selected Down" />
+				</div>				
+				<div id="remove"  class="tabcontent">
+					<input onclick="RemoveBlankImages();" type="button" value="Remove Blank Images" />
+					<input onclick="RemoveSelectedImages();" type="button" value="Remove Selected Images" />
+					<input onclick="RemoveAllImages()" type="button" value="Remove All Images" />
+				</div>
+		   </div>
+			
+
 		</div>
 	
 
@@ -107,12 +125,13 @@
 
         var DWObject;
 		var DWObjectRemote;
-
+		switchTab(null, 'camera')
+		
         function Dynamsoft_OnReady() {
 			DWObject = Dynamsoft.WebTwainEnv.GetWebTwain('dwtcontrolContainer'); // Get the Dynamic Web TWAIN object that is embeded in the div with id 'dwtcontrolContainer'
+		    DWObject.Viewer.width="100%";
 			initRemoteDWT(ip.value);
             if (DWObject) {
-
 				DWObject.SetViewMode(2, 2);
 				
                 var count = DWObject.SourceCount; // Get how many sources are installed in the system
@@ -120,7 +139,7 @@
                 for (var i = 0; i < count; i++)
                     document.getElementById("source").options.add(new Option(DWObject.GetSourceNameItems(i), i)); // Add the sources in a drop-down list
 					
-				DWObject.Addon.Camera.play(null, { width: 2560, height: 1440 }).then(function (r) {
+				DWObject.Addon.Camera.play(null, { width: 2560, height: 1440 },true).then(function (r) {
 					isVideoOn = true;
 					document.getElementById("captureButton").style.backgroundColor = "";
 					document.getElementById("captureButton").disabled = "";
@@ -218,7 +237,7 @@
 
     function SetIfWebcamPlayVideo(bShow) {
         if (bShow) {
-            DWObject.Addon.Camera.play(null, { width: 2560, height: 1440 }).then(function (r) {
+            DWObject.Addon.Camera.play(null, { width: 2560, height: 1440 },true).then(function (r) {
                 isVideoOn = true;
                 document.getElementById("captureButton").style.backgroundColor = "";
                 document.getElementById("captureButton").disabled = "";
@@ -336,6 +355,20 @@
             alert(errorString);
         }
 
+        function LoadLocal(){
+			var onSuccess = function() {
+			    console.log("Loaded a file successfully!");
+			};
+			var onFailure = function(errorCode, errorString) {
+			    console.log(errorString);
+			};
+			DWObject.IfShowFileDialog = true;
+			// PDF Rasterizer Addon is used here to ensure PDF support
+			DWObject.Addon.PDF.SetResolution(200);
+			DWObject.Addon.PDF.SetConvertMode(Dynamsoft.EnumDWT_ConvertMode.CM_RENDERALL);
+			DWObject.LoadImageEx("", Dynamsoft.EnumDWT_ImageType.IT_ALL, onSuccess, onFailure);
+		}
+
         function SaveWithFileDialog() {
             if (DWObject) {
                 if (DWObject.HowManyImagesInBuffer > 0) {
@@ -355,6 +388,23 @@
                     else if (document.getElementById("imgTypepdf").checked == true)
                         DWObject.SaveAllAsPDF(filename+".pdf", OnSuccess, OnFailure);
                 }
+            }
+        }
+		
+		
+		function MoveSelectedUp() {
+            if (DWObject) {
+			    var indices=DWObject.SelectedImagesIndices;
+				var firstIndex = indices[0];
+				DWObject.MoveImage(firstIndex, firstIndex-1);				
+            }
+        }
+		
+		function MoveSelectedDown() {
+            if (DWObject) {
+			    var indices=DWObject.SelectedImagesIndices;
+				var firstIndex = indices[0];
+				DWObject.MoveImage(firstIndex, firstIndex+1);				
             }
         }
 		
@@ -384,7 +434,7 @@
                 DWObject.RemoveAllImages();
             }
         }
-
+		
     </script>
 </body>
 
