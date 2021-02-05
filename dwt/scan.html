@@ -72,6 +72,7 @@
 						<select class="source" size="1" id="remote">
 							<option>192.168.191.1</option>
 						</select>
+						<select id="remotesource"></select>
 						<input onclick="RemoteScan();" type="button" value="Remote Scan">
 					</div>
 				</div>
@@ -154,7 +155,7 @@
 			  function (dwt) {
 				  DWObjectRemote = dwt;
 				  console.log('service connected!');
-				  // List the available scanners
+				  loadRemoteScannersList(dwt);
 				  registerTransferEvent(dwt);
 			  }, 
 			  function (error){
@@ -162,6 +163,23 @@
 			  }
 			);
         }
+		
+		function loadRemoteScannersList(dwt){
+			// Update the remote scanner list
+			var remoteSelect = document.getElementById('remotesource');
+			dwt.GetSourceNamesAsync().then(function (result) {
+				// Remove previous options
+				for (var i = 0; i < remoteSelect.length; i++) {
+					remoteSelect.remove(i);
+				}
+
+				for (var i = 0; i < result.length; i++)
+					remoteSelect.options.add(new Option(result[i], i));
+			},
+				function (fail) {
+					console.log(fail);
+				});
+		}
 		
 		function registerTransferEvent(dwt){
 			dwt.RegisterEvent('OnPostTransferAsync', function(outputInfo){
@@ -276,7 +294,7 @@
 						  RemoteScan: true,
 						  ShowRemoteScanUI: true
 					  };
-					  deviceConfiguration.SelectSourceByIndex = document.getElementById("remote").selectedIndex;
+					  deviceConfiguration.SelectSourceByIndex = document.getElementById("remotesource").selectedIndex;
 					  DWObjectRemote.AcquireImage(deviceConfiguration, OnAcquireImageSuccess, OnAcquireImageFailure);
 				}							
 			}
