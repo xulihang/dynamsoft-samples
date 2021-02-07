@@ -75,6 +75,8 @@
 						<label>
 							<input id="ShowUI" type="checkbox">Show UI</label>
 						<label>
+							<input id="Duplex" type="checkbox">Duplex</label>							
+						<label>
 							<input id="ADF" type="checkbox" checked="checked">Auto Feeder</label>
 					</div>							
 				</div>
@@ -280,7 +282,7 @@
 		}
 		
         function AcquireImage(isRemote) {
-			var pixelType,feederEnabled,showUI,resolution;
+			var pixelType,feederEnabled,duplexEnabled,showUI,resolution;
 			//Pixel type
 			if (document.getElementById("BW").checked)
 				pixelType = EnumDWT_PixelType.TWPT_BW;
@@ -293,6 +295,11 @@
 				feederEnabled = true;
 			else
 				feederEnabled = false;
+			//If duplex
+			if (document.getElementById("Duplex").checked)
+				duplexEnabled = true;
+			else
+				duplexEnabled = false;
 			//If show UI
 			if (document.getElementById("ShowUI").checked)
 				showUI = true;
@@ -311,7 +318,7 @@
 						  PixelType: pixelType,
 						  Resolution: resolution,
 						  IfFeederEnabled: feederEnabled,
-						  IfDuplexEnabled: false,
+						  IfDuplexEnabled: duplexEnabled,
 						  IfDisableSourceAfterAcquire: true,
 						  RemoteScan: true,
 						  ShowRemoteScanUI: true
@@ -332,6 +339,7 @@
 					DWObject.OpenSource();
 					DWObject.PixelType=pixelType;
 					DWObject.IfFeederEnabled = feederEnabled;
+					DWObject.IfDuplexEnabled = duplexEnabled;
 					DWObject.IfShowUI=showUI;
 					DWObject.Resolution=resolution;
 					if (document.getElementById("ADF").checked && DWObject.IfFeederEnabled == true)  // if paper is NOT loaded on the feeder
@@ -360,17 +368,11 @@
         }
 
         function LoadLocal(){
-			var onSuccess = function() {
-			    console.log("Loaded a file successfully!");
-			};
-			var onFailure = function(errorCode, errorString) {
-			    console.log(errorString);
-			};
 			DWObject.IfShowFileDialog = true;
 			// PDF Rasterizer Addon is used here to ensure PDF support
 			DWObject.Addon.PDF.SetResolution(200);
 			DWObject.Addon.PDF.SetConvertMode(Dynamsoft.EnumDWT_ConvertMode.CM_RENDERALL);
-			DWObject.LoadImageEx("", Dynamsoft.EnumDWT_ImageType.IT_ALL, onSuccess, onFailure);
+			DWObject.LoadImageEx("", Dynamsoft.EnumDWT_ImageType.IT_ALL, OnSuccess, OnFailure);
 		}
 
         function SaveWithFileDialog() {
