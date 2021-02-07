@@ -148,6 +148,14 @@
 						document.getElementById("camerasource").options.add(new Option(sourceName[i].label, sourceName[i].deviceId));
 					}
 				});
+				document.getElementById('camerasource').onchange = function () {
+					var deviceId = document.getElementById("camerasource").options[document.getElementById("camerasource").selectedIndex].value;
+					DWObject.Addon.Camera.selectSource(deviceId).then(function () {
+						SetIfWebcamPlayVideo(true);
+						document.getElementById("switchButton").style.display = '';
+						document.getElementById("captureButton").disabled = "";
+					}, function (ex) { console.log(ex.message); });
+				}				
             }
         }
 		
