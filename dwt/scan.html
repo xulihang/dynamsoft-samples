@@ -30,6 +30,7 @@
 				<button class="tablinks" onclick="switchTab(event, 'move')">Move</button>
 				<button class="tablinks" onclick="switchTab(event, 'remove')">Remove</button>
 				<button class="tablinks" onclick="switchTab(event, 'view')">View</button>
+				<button class="tablinks" onclick="switchTab(event, 'edit')">Edit</button>
 			</div>		
 			<div>
 				<div id="camera" class="tabcontent">
@@ -105,7 +106,10 @@
 					Column: <input id="colNum" type="range" value="2" min="1" max="10" onchange="ViewModeNumChanged(true,this.value)" /><span id="colNumDisplay">2</span><br />
 					Row: <input id="rowNum" type="range" value="2" min="1" max="10" onchange="ViewModeNumChanged(false,this.value)" /><span id="rowNumDisplay">2</span><br />
 					<input onclick="SetViewMode()" type="button" value="Set View Mode" />
-				</div>				
+				</div>		
+				<div id="edit" class="tabcontent">
+					<input onclick="ShowImageEditor()" type="button" value="Show Editor" />
+				</div>					
 		   </div>
 		</div>
 	
@@ -155,7 +159,7 @@
 						document.getElementById("switchButton").style.display = '';
 						document.getElementById("captureButton").disabled = "";
 					}, function (ex) { console.log(ex.message); });
-				}				
+				}
             }
         }
 		
@@ -449,6 +453,26 @@
 			}else{
 				document.getElementById("rowNumDisplay").innerText=value;
 			}		    
+		}
+		
+		function ShowImageEditor(){
+			var editorSettings = {
+				/*element: document.getElementById("imageEditor"),
+				width: 600,
+				height: 400,*/
+				border: '1px solid rgb(204, 204, 204);',
+				topMenuBorder: '',
+				innerBorder: '',
+				background: "rgb(255, 255, 255)",
+				promptToSaveChange: true,
+				buttons: {
+					titles: {},
+					visibility: {}
+				},
+				dialogText: {}
+			};
+			var imageEditor = DWObject.Viewer.createImageEditor(editorSettings);
+			imageEditor.show();
 		}
     </script>
 </body>
