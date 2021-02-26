@@ -7,6 +7,8 @@
     <script type="text/javascript" src="Resources/dynamsoft.webtwain.config.js"></script>
 	<script type="text/javascript" src="Resources/addon/dynamsoft.webtwain.addon.camera.js"></script>
 	<script type="text/javascript" src="Resources/addon/dynamsoft.webtwain.addon.pdf.js"></script>
+	<script type="text/javascript" src="Resources/addon/dynamsoft.webtwain.addon.barcodereader.js"> </script>
+
 	<script type="text/javascript" src="common.js"></script>
 	<script type="text/javascript" src="tabs.js"></script>
 	<meta name="viewport" content="width=device-width,initial-scale=1.0,maximum-scale=1.0,user-scalable=0" />
@@ -24,8 +26,10 @@
 		<div class="six columns">
 			<div class="tab" style="display:flex;overflow-x:auto">
 				<button class="tablinks" onclick="switchTab(event, 'camera')">Camera</button>
-				<button class="tablinks" onclick="switchTab(event, 'scan')">Scan</button>
+				<button class="tablinks" onclick="switchTab(event, 'scan')">Scan</button>				
 				<button class="tablinks" onclick="switchTab(event, 'local')">Local</button>
+				<button class="tablinks" onclick="switchTab(event, 'barcode')">Barcode</button>
+				<button class="tablinks" onclick="switchTab(event, 'ocr')">OCR</button>
 				<button class="tablinks" onclick="switchTab(event, 'save')">Save</button>
 				<button class="tablinks" onclick="switchTab(event, 'move')">Move</button>
 				<button class="tablinks" onclick="switchTab(event, 'remove')">Remove</button>
@@ -82,6 +86,14 @@
 				</div>
 				<div id="local" class="tabcontent">			
 					<input onclick="LoadLocal();" type="button" value="Load Images">				
+				</div>
+				<div id="barcode" class="tabcontent">			
+					<input onclick="ReadBarcodes();" type="button" value="Read Barcodes in Selected Image">
+					<p id="barcoderesult"></p>
+					<textarea id="dbrtemplate"></textarea>
+				</div>
+				<div id="ocr" class="tabcontent">			
+					<input onclick="ReadText();" type="button" value="Read Text in Selected Image">
 				</div>
 				<div id="save"  class="tabcontent">
 					Default Filename: <input type="text" id="filename" value="DynamicWebTWAIN"/>
@@ -366,6 +378,11 @@
         function OnFailure(errorCode, errorString) {
             alert(errorString);
         }
+		
+		function OnFailure2(error) {
+            console.log(error);
+        }
+		
 
         function LoadLocal(){
 			DWObject.IfShowFileDialog = true;
@@ -471,6 +488,53 @@
 			var imageEditor = DWObject.Viewer.createImageEditor(editorSettings);
 			imageEditor.show();
 		}
+		
+	function ReadBarcodes() {
+		var resultParagraph = document.getElementById("barcoderesult");
+		var template = document.getElementById("dbrtemplate");
+		resultParagraph.innerText="decoding...";
+		if (DWObject) {
+			if (template.value!=""){
+				try {
+					console.log(template.value);
+					DWObject.Addon.BarcodeReader.initRuntimeSettingsWithString(template.value).then(DecodeBarcodes(),OnFailure2());
+				}
+				catch(error) {
+					console.log(error);
+				}
+			}else{
+				DWObject.Addon.BarcodeReader.resetRuntimeSettings().then(DecodeBarcodes(),OnFailure2());		
+			}		
+		} else {
+			console.log('DWObject is not initialized yet');
+			resultParagraph.innerText="failed";
+		}
+	}
+	
+	function DecodeBarcodes(){
+		var resultParagraph = document.getElementById("barcoderesult");
+		DWObject.Addon.BarcodeReader.decode(DWObject.CurrentImageIndexInBuffer)
+		.then(function(textResults) {
+			var resultText="";
+			console.log(textResults.length);
+			if (textResults.length==0){
+				resultText="Not Found."
+			}else{
+				for (var i = 0; i < textResults.length; i++){			    
+					var result = textResults[i];
+					resultText=resultText+(i+1).toString()+"\nFormat: "+result.BarcodeFormatString+"\nText: "+result.BarcodeText+"\n";
+					console.log(i);
+					console.log(textResults[i]);
+				}		
+			}
+
+			resultParagraph.innerText=resultText;
+			
+		}, function(error) {
+			console.log(error);
+			resultParagraph.innerText="failed";
+		});
+	}
     </script>
 </body>
 
