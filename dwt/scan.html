@@ -379,8 +379,8 @@
             alert(errorString);
         }
 		
-		function OnFailure2(error) {
-            console.log(error);
+		function OnFailure2() {
+            console.log("error");
         }
 		
 
@@ -497,13 +497,13 @@
 			if (template.value!=""){
 				try {
 					console.log(template.value);
-					DWObject.Addon.BarcodeReader.initRuntimeSettingsWithString(template.value).then(DecodeBarcodes(),OnFailure2());
+					DWObject.Addon.BarcodeReader.initRuntimeSettingsWithString(template.value).then(DecodeBarcodes()).catch(OnFailure2());
 				}
 				catch(error) {
 					console.log(error);
 				}
 			}else{
-				DWObject.Addon.BarcodeReader.resetRuntimeSettings().then(DecodeBarcodes(),OnFailure2());		
+				DWObject.Addon.BarcodeReader.resetRuntimeSettings().then(DecodeBarcodes()).catch(OnFailure2());		
 			}		
 		} else {
 			console.log('DWObject is not initialized yet');
@@ -512,6 +512,7 @@
 	}
 	
 	function DecodeBarcodes(){
+	    console.log("decoding...");
 		var resultParagraph = document.getElementById("barcoderesult");
 		DWObject.Addon.BarcodeReader.decode(DWObject.CurrentImageIndexInBuffer)
 		.then(function(textResults) {
