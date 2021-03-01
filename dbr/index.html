@@ -126,9 +126,8 @@
 	// decode video from camera
 	async function showVideo(){
 		try{
-			var scannerElement = document.getElementById("scanner");
-			updateScannerStyle();
-            scanner = scanner || await Dynamsoft.DBR.BarcodeScanner.createInstance();			
+			var scannerElement = document.getElementById("scanner");			
+            scanner = scanner || await Dynamsoft.DBR.BarcodeScanner.createInstance();				
 			let rs = await scanner.getRuntimeSettings();
 			scanner.bSaveOriCanvas = true;
 			await scanner.updateRuntimeSettings(rs);
@@ -157,6 +156,7 @@
 
             };
             await scanner.show();
+			updateScannerStyle();		
         }catch(ex){
             alert(ex.message);
             throw ex;
