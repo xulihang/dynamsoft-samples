@@ -48,7 +48,7 @@
 					</div>
 					<div id="result" class="tabcontent">
 					    <div id="timeElapsed"></div>
-						<textarea id="resultTextarea" style="width:100%;"></textarea>	
+						<textarea id="resultTextarea" style="width:100%;min-height:150px;"></textarea>	
 					</div>			
 					<div id="template" class="tabcontent">
 						<textarea id="templateTextarea" style="width:100%;"></textarea>	
@@ -214,9 +214,11 @@
 	function updateScannerStyle(){
 		var scannerElement = document.getElementById("scanner");
 		if (document.getElementById("fullscreen").checked){
-			scannerElement.style.position="fixed"
+			if (scanner.isOpen()){
+				scannerElement.style.position="fixed";
+			}			
 		}else{
-			scannerElement.style.position="relative"
+			scannerElement.style.position="relative";
 		}	
 	}
 	
