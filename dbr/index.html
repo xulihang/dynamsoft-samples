@@ -1,0 +1,247 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+	<meta name="viewport" content="width=device-width,initial-scale=1.0,maximum-scale=1.0,user-scalable=0" />
+	<link rel="stylesheet" href="css/normalize.css">
+    <link rel="stylesheet" href="css/skeleton.css">
+	<link rel="stylesheet" href="css/tabs.css">
+</head>
+<body>
+    <div class="container">
+		<div class="row">
+			<div class="six columns">				
+				<div id="scanner" style="left:0;top:0;width:100%;height:100%;min-width:100px;min-height:300px;background:#eee;position:relative;">
+					<svg class="dbrScanner-bg-loading" style="display:none;animation:1s linear infinite dbrScanner-rotate;width:40%;height:40%;position:absolute;margin:auto;left:0;top:0;right:0;bottom:0;fill:#aaa;" viewBox="0 0 1792 1792"><path d="M1760 896q0 176-68.5 336t-184 275.5-275.5 184-336 68.5-336-68.5-275.5-184-184-275.5-68.5-336q0-213 97-398.5t265-305.5 374-151v228q-221 45-366.5 221t-145.5 406q0 130 51 248.5t136.5 204 204 136.5 248.5 51 248.5-51 204-136.5 136.5-204 51-248.5q0-230-145.5-406t-366.5-221v-228q206 31 374 151t265 305.5 97 398.5z"/></svg>
+					<svg class="dbrScanner-bg-camera" style="display:none;width:40%;height:40%;position:absolute;margin:auto;left:0;top:0;right:0;bottom:0;fill:#aaa;" viewBox="0 0 2048 1792"><path d="M1024 672q119 0 203.5 84.5t84.5 203.5-84.5 203.5-203.5 84.5-203.5-84.5-84.5-203.5 84.5-203.5 203.5-84.5zm704-416q106 0 181 75t75 181v896q0 106-75 181t-181 75h-1408q-106 0-181-75t-75-181v-896q0-106 75-181t181-75h224l51-136q19-49 69.5-84.5t103.5-35.5h512q53 0 103.5 35.5t69.5 84.5l51 136h224zm-704 1152q185 0 316.5-131.5t131.5-316.5-131.5-316.5-316.5-131.5-316.5 131.5-131.5 316.5 131.5 316.5 316.5 131.5z"/></svg>
+					<video class="dbrScanner-video" playsinline="true" style="width:100%;height:100%;position:absolute;left:0;top:0;"></video>
+					<canvas class="dbrScanner-cvs-drawarea" style="width:100%;height:100%;position:absolute;left:0;top:0;"></canvas>
+					<div class="dbrScanner-cvs-scanarea" style="width:100%;height:100%;position:absolute;left:0;top:0;">
+						<div class="dbrScanner-scanlight" style="width:100%;height:3%;position:absolute;animation:3s infinite dbrScanner-scanlight;border-radius:50%;box-shadow:0px 0px 2vw 1px #00e5ff;background:#fff;display:none;"></div>
+					</div>
+					<select class="dbrScanner-sel-camera" style="margin:0 auto;position:absolute;left:0;top:0;height:30px;"></select>
+					<select class="dbrScanner-sel-resolution" style="position:absolute;left:0;top:30px;"></select>
+					<button class="dbrScanner-btn-close" style="position:absolute;right:0;top:0;">
+						<svg width="16" height="16" viewBox="0 0 1792 1792" xmlns="http://www.w3.org/2000/svg"><path d="M1490 1322q0 40-28 68l-136 136q-28 28-68 28t-68-28l-294-294-294 294q-28 28-68 28t-68-28l-136-136q-28-28-28-68t28-68l294-294-294-294q-28-28-28-68t28-68l136-136q28-28 68-28t68 28l294 294 294-294q28-28 68-28t68 28l136 136q28 28 28 68t-28 68l-294 294 294 294q28 28 28 68z"/></svg>
+					</button>
+				</div>
+				<div id="imgContainer"><p>Image(s):</p><p id="extra_msg"></p></div>
+			</div>
+			<div class="six columns">
+				<div class="tab" style="display:flex;overflow-x:auto">
+					<button class="tablinks" onclick="switchTab(event, 'camera')">Camera</button>
+					<button class="tablinks" onclick="switchTab(event, 'local')">Local</button>
+					<button class="tablinks" onclick="switchTab(event, 'result')">Result</button>
+				</div>		
+				<div>
+					<div id="camera" class="tabcontent">
+						<button id="btn-show-scanner" onclick="showVideo()">Show scanner</button>
+						<label for="fullscreen">
+								<input name="PixelType" id="fullscreen" type="checkbox" onchange="onFullScreen()">Full Screen</label>
+					</div>		
+					<div id="local" class="tabcontent">
+						Choose image(s) to decode:
+						<input id="ipt-file" type="file" onchange="onFileChosen(event)" multiple accept="image/png,image/jpeg,image/bmp,image/gif">
+						<button id="btn-decode-images" onclick="decodeImg()">Decode</button>
+					</div>
+					<div id="result" class="tabcontent">
+						<textarea id="resultTextarea" style="width:100%;"></textarea>	
+					</div>				
+			   </div>
+			</div>			
+		</div>
+    </div>	
+
+
+
+
+<!-- Please visit https://www.dynamsoft.com/customer/license/trialLicense to get a trial license. -->
+<script src="https://cdn.jsdelivr.net/npm/dynamsoft-javascript-barcode@8.1.2/dist/dbr.js" data-productKeys="t0076xQAAAKur8hZaNnEOzQ9Wnn34zkzADM1ahDBrQLcqbRRfcXUH7X6s0lOfxHX00ZtBwGvXTQvJdIeXcE1GrFrJE6B7mALwTOMBCk8pbA=="></script>
+
+<script>
+    // Dynamsoft.DBR.BarcodeReader._bUseFullFeature = true; // Control of loading min wasm or full wasm.
+
+    // reader for decoding picture
+    let reader = null;
+    // scanner for decoding video
+    let scanner = null;
+	switchTab(null, 'camera')
+	showVideo();
+	
+	function switchTab(evt, tabName) {
+	
+	    if (tabName=="camera"){
+			document.getElementById("imgContainer").style.display="none";
+			if (document.getElementById("fullscreen").checked==false){
+			    document.getElementById("scanner").style.display="";
+			}					   
+		}else if (tabName=="local"){
+		    document.getElementById("imgContainer").style.display="";
+		    document.getElementById("scanner").style.display="none";
+		} else{
+			if (scanner.isOpen()){
+			    document.getElementById("scanner").style.display="";
+				document.getElementById("imgContainer").style.display="none";
+			} else{
+				document.getElementById("scanner").style.display="none";
+				document.getElementById("imgContainer").style.display="";
+			}		    
+		}
+	
+	    var i, tabcontent, tablinks;
+	    tabcontent = document.getElementsByClassName("tabcontent");
+	    for (i = 0; i < tabcontent.length; i++) {
+	    	tabcontent[i].style.display = "none";
+	    }
+	    tablinks = document.getElementsByClassName("tablinks");
+	    for (i = 0; i < tablinks.length; i++) {
+		    tablinks[i].className = tablinks[i].className.replace(" active", "");
+	    }
+	    document.getElementById(tabName).style.display = "block";
+	    if (evt != null){
+		    evt.currentTarget.className += " active";    
+	    }
+	}
+
+	// decode video from camera
+	async function showVideo(){
+		try{
+			var scannerElement = document.getElementById("scanner");
+			updateScannerStyle();
+            scanner = scanner || await Dynamsoft.DBR.BarcodeScanner.createInstance();
+			
+			let rs = await scanner.getRuntimeSettings();
+            if(Dynamsoft.DBR.BarcodeReader._bUseFullFeature){
+                rs.intermediateResultTypes = 1; // the intermediateResult need a license to support it
+            }else{
+                scanner.bSaveOriCanvas = true;
+            }
+			await scanner.updateRuntimeSettings(rs);
+			scanner.bPlaySoundOnSuccessfulRead = true;
+			scanner.setUIElement(scannerElement);
+            scanner.onFrameRead = results => {
+                if(results.length){
+                    console.log(results);
+                }
+            };
+            scanner.onUnduplicatedRead = (txt, result) => {
+				try{
+				    var extra_msg = document.getElementById("extra_msg");
+					showOffScreenCanvasData(scanner.oriCanvas);
+					var imgContainer =document.getElementById("imgContainer");
+					clearElements(imgContainer,"img");
+					extra_msg.innerText="";
+				}catch (error){
+				    extra_msg.innerText="OffScreenCanvas not supported on this browser";
+				    console.log(error);
+				}
+				document.getElementById("resultTextarea").value=result.barcodeFormatString + ': ' + txt;
+                //alert(result.barcodeFormatString + ': ' + txt);				
+				scanner.hide();
+				switchTab(null, 'result');
+
+            };
+            await scanner.show();
+        }catch(ex){
+            alert(ex.message);
+            throw ex;
+        }
+	}
+	// decode input picture
+	async function decodeImg(){
+		try{
+			var extra_msg = document.getElementById("extra_msg");
+			extra_msg.innerText="";
+			let files=document.getElementById("ipt-file").files;
+            reader = reader || await Dynamsoft.DBR.BarcodeReader.createInstance();
+            let resultsToAlert = [];
+            for(let i = 0; i < files.length; ++i){
+                let file = files[i];
+                resultsToAlert.push((i+1) + '. ' + file.name + ":");
+                let results = await reader.decode(file);
+                console.log(results);
+                for(let result of results){
+                    resultsToAlert.push(result.barcodeText);
+                }
+            }
+            document.getElementById("resultTextarea").value=resultsToAlert.join('\n');
+			switchTab(null, 'result');
+        }catch(ex){
+            alert(ex.message);
+            throw ex;
+        }
+	}
+	
+	function onFileChosen(event){
+		showLocalImage(event);
+	}
+	
+	function onFullScreen(){
+	    updateScannerStyle();
+	}
+	
+	function updateScannerStyle(){
+		var scannerElement = document.getElementById("scanner");
+		if (document.getElementById("fullscreen").checked){
+			scannerElement.style.position="fixed"
+		}else{
+			scannerElement.style.position="relative"
+		}	
+	}
+	
+	function showLocalImage(event){
+	    var imgContainer =document.getElementById("imgContainer");
+		clearElements(imgContainer,"img");	
+		var files = event.target.files;
+		for(let i = 0; i < files.length; ++i){
+		    var file = files[i];
+			thisType = file.type,
+			thisSize = file.size,
+			fileReader = new FileReader();		
+			fileReader.onload = function(e){
+				appendImg(e.target.result);
+			};		
+			fileReader.onerror = function () {
+				console.warn('oops, something went wrong.');
+			};			
+			fileReader.readAsDataURL(file);	
+		}
+	}
+	
+	function appendImg(data){
+		var imgContainer =document.getElementById("imgContainer");
+		img = document.createElement("img");
+		img.src = data;
+		img.style = "max-height:300px;max-width:100%;"
+		imgContainer.append(img);
+	}
+	
+	function clearElements(parent,tagName){
+	    var elements=parent.getElementsByTagName(tagName);
+		while (elements.length>0){
+		    var ele=elements[0];
+			ele.remove();
+		}
+	}
+	
+	function showOffScreenCanvasData(canvas){
+	    const ctx = canvas.getContext('webgl');
+	    canvas[
+		  canvas.convertToBlob 
+		    ? 'convertToBlob' // specs
+		    : 'toBlob'        // current Firefox
+	    ]()
+		.then(blob => {
+		    fileReader = new FileReader();		
+			fileReader.onload = function(e){
+				appendImg(e.target.result);
+			};		
+			fileReader.onerror = function () {
+				console.warn('oops, something went wrong.');
+			};			
+			fileReader.readAsDataURL(blob);	
+		});
+	}
+</script>
+</body>
+</html>
