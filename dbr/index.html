@@ -113,7 +113,7 @@
 		try{
 			var ta= document.getElementById("templateTextarea");
 			if (ta.value!=""){
-				console.log(ta.value);
+				console.log("using template");
 				readerOrScanner.initRuntimeSettingsWithString(ta.value);
 			} else{
 				readerOrScanner.resetRuntimeSettings();
@@ -143,10 +143,10 @@
             scanner.onUnduplicatedRead = (txt, result) => {
 				try{
 				    var extra_msg = document.getElementById("extra_msg");
-					showOffScreenCanvasData(scanner.oriCanvas);
 					var imgContainer =document.getElementById("imgContainer");
 					clearElements(imgContainer,"img");
 					extra_msg.innerText="";
+					showCapturedImg();
 				}catch (error){
 				    extra_msg.innerText="OffScreenCanvas not supported on this browser";
 				    console.log(error);
@@ -184,8 +184,6 @@
                 }
             }
 			var endTime=new Date().getTime();
-			console.log(startTime);
-			console.log(endTime);
 			showResult(resultsToAlert.join('\n'),endTime-startTime);
 
         }catch(ex){
@@ -257,15 +255,16 @@
 		}
 	}
 	
-	function showOffScreenCanvasData(canvas){
-	    const ctx = canvas.getContext('webgl');
-	    canvas[
+	function showCapturedImg(){
+		var canvas=scanner.oriCanvas
+		const ctx = canvas.getContext('webgl');
+		canvas[
 		  canvas.convertToBlob 
-		    ? 'convertToBlob' // specs
-		    : 'toBlob'        // current Firefox
-	    ]()
+			? 'convertToBlob' // specs
+			: 'toBlob'        // current Firefox
+		]()
 		.then(blob => {
-		    fileReader = new FileReader();		
+			fileReader = new FileReader();		
 			fileReader.onload = function(e){
 				appendImg(e.target.result);
 			};		
