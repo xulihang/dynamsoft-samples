@@ -32,6 +32,7 @@
 					<button class="tablinks" onclick="switchTab(event, 'camera')">Camera</button>
 					<button class="tablinks" onclick="switchTab(event, 'local')">Local</button>
 					<button class="tablinks" onclick="switchTab(event, 'result')">Result</button>
+					<button class="tablinks" onclick="switchTab(event, 'template')">Template</button>
 				</div>		
 				<div>
 					<div id="camera" class="tabcontent">
@@ -43,10 +44,15 @@
 						Choose image(s) to decode:
 						<input id="ipt-file" type="file" onchange="onFileChosen(event)" multiple accept="image/png,image/jpeg,image/bmp,image/gif">
 						<button id="btn-decode-images" onclick="decodeImg()">Decode</button>
+						<div id="localStatus"></div>
 					</div>
 					<div id="result" class="tabcontent">
+					    <div id="timeElapsed"></div>
 						<textarea id="resultTextarea" style="width:100%;"></textarea>	
-					</div>				
+					</div>			
+					<div id="template" class="tabcontent">
+						<textarea id="templateTextarea" style="width:100%;"></textarea>	
+					</div>						
 			   </div>
 			</div>			
 		</div>
@@ -59,7 +65,7 @@
 <script src="https://cdn.jsdelivr.net/npm/dynamsoft-javascript-barcode@8.1.2/dist/dbr.js" data-productKeys="t0076xQAAAKur8hZaNnEOzQ9Wnn34zkzADM1ahDBrQLcqbRRfcXUH7X6s0lOfxHX00ZtBwGvXTQvJdIeXcE1GrFrJE6B7mALwTOMBCk8pbA=="></script>
 
 <script>
-    // Dynamsoft.DBR.BarcodeReader._bUseFullFeature = true; // Control of loading min wasm or full wasm.
+    Dynamsoft.DBR.BarcodeReader._bUseFullFeature = true; // Control of loading min wasm or full wasm.
 
     // reader for decoding picture
     let reader = null;
@@ -103,20 +109,30 @@
 	    }
 	}
 
+    function updateSettingsFromTemplateIfExists(readerOrScanner){
+		try{
+			var ta= document.getElementById("templateTextarea");
+			if (ta.value!=""){
+				console.log(ta.value);
+				readerOrScanner.initRuntimeSettingsWithString(ta.value);
+			} else{
+				readerOrScanner.resetRuntimeSettings();
+			}
+		} catch (error){
+			console.log(error);
+		}
+	}
+
 	// decode video from camera
 	async function showVideo(){
 		try{
 			var scannerElement = document.getElementById("scanner");
 			updateScannerStyle();
-            scanner = scanner || await Dynamsoft.DBR.BarcodeScanner.createInstance();
-			
+            scanner = scanner || await Dynamsoft.DBR.BarcodeScanner.createInstance();			
 			let rs = await scanner.getRuntimeSettings();
-            if(Dynamsoft.DBR.BarcodeReader._bUseFullFeature){
-                rs.intermediateResultTypes = 1; // the intermediateResult need a license to support it
-            }else{
-                scanner.bSaveOriCanvas = true;
-            }
+			scanner.bSaveOriCanvas = true;
 			await scanner.updateRuntimeSettings(rs);
+			updateSettingsFromTemplateIfExists(scanner);
 			scanner.bPlaySoundOnSuccessfulRead = true;
 			scanner.setUIElement(scannerElement);
             scanner.onFrameRead = results => {
@@ -135,10 +151,9 @@
 				    extra_msg.innerText="OffScreenCanvas not supported on this browser";
 				    console.log(error);
 				}
-				document.getElementById("resultTextarea").value=result.barcodeFormatString + ': ' + txt;
                 //alert(result.barcodeFormatString + ': ' + txt);				
 				scanner.hide();
-				switchTab(null, 'result');
+				showResult(result.barcodeFormatString + ': ' + txt,null)
 
             };
             await scanner.show();
@@ -149,11 +164,15 @@
 	}
 	// decode input picture
 	async function decodeImg(){
+		var localStatus = document.getElementById("localStatus");
+		var extra_msg = document.getElementById("extra_msg");
+		extra_msg.innerText="";
+		localStatus.innerText="Decoding...";
+		var startTime=new Date().getTime();
 		try{
-			var extra_msg = document.getElementById("extra_msg");
-			extra_msg.innerText="";
 			let files=document.getElementById("ipt-file").files;
             reader = reader || await Dynamsoft.DBR.BarcodeReader.createInstance();
+			updateSettingsFromTemplateIfExists(reader);
             let resultsToAlert = [];
             for(let i = 0; i < files.length; ++i){
                 let file = files[i];
@@ -164,12 +183,26 @@
                     resultsToAlert.push(result.barcodeText);
                 }
             }
-            document.getElementById("resultTextarea").value=resultsToAlert.join('\n');
-			switchTab(null, 'result');
+			var endTime=new Date().getTime();
+			console.log(startTime);
+			console.log(endTime);
+			showResult(resultsToAlert.join('\n'),endTime-startTime);
+
         }catch(ex){
             alert(ex.message);
             throw ex;
         }
+		localStatus.innerText=""
+	}
+	
+	function showResult(result,elapsedTime){
+		document.getElementById("resultTextarea").value=result;
+		if (elapsedTime!=null){
+		    document.getElementById("timeElapsed").innerText="Time: "+elapsedTime+"ms";
+		}else{
+			document.getElementById("timeElapsed").innerText="";
+		}		
+		switchTab(null, 'result');
 	}
 	
 	function onFileChosen(event){
