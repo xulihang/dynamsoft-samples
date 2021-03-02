@@ -25,7 +25,7 @@
 						<svg width="16" height="16" viewBox="0 0 1792 1792" xmlns="http://www.w3.org/2000/svg"><path d="M1490 1322q0 40-28 68l-136 136q-28 28-68 28t-68-28l-294-294-294 294q-28 28-68 28t-68-28l-136-136q-28-28-28-68t28-68l294-294-294-294q-28-28-28-68t28-68l136-136q28-28 68-28t68 28l294 294 294-294q28-28 68-28t68 28l136 136q28 28 28 68t-28 68l-294 294 294 294q28 28 28 68z"/></svg>
 					</button>
 				</div>
-				<div id="imgContainer"><p>Image(s):</p><p id="extra_msg"></p></div>
+				<div id="imgContainer" style="overflow-x:auto;max-height:300px;"><p>Image(s):</p><p id="extra_msg"></p></div>
 			</div>
 			<div class="six columns">
 				<div class="tab" style="display:flex;overflow-x:auto">
@@ -519,10 +519,11 @@
 	function appendImg(data,result){
 		var imgContainer =document.getElementById("imgContainer");
 		var oneImgResult = document.createElement("div");
+		oneImgResult.className="one-img-container"
 		img = document.createElement("img");
 		img.src = data;
-		oneImgResult.style = "max-height:300px;max-width:100%;position:relative;"
-		img.style="width:100%;max-height:300px;"
+		oneImgResult.style = "width:100%;position:relative;"
+		img.style="width:100%;"
 		oneImgResult.append(img);
 		imgContainer.append(oneImgResult);
 		if (result!=null){
@@ -532,7 +533,7 @@
 	
 	function showDetectedBarCode(index,result){
 		var imgContainer =document.getElementById("imgContainer");
-		var oneImgResult = imgContainer.getElementsByTagName("div")[index];
+		var oneImgResult = imgContainer.getElementsByClassName("one-img-container")[index];
 		var lr= result.localizationResult;
 		var leftPositions = new Array(lr.x1,lr.x2,lr.x3,lr.x4);
 		var topPositions = new Array(lr.y1,lr.y2,lr.y3,lr.y4);
