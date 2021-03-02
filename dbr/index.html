@@ -32,6 +32,7 @@
 					<button class="tablinks" onclick="switchTab(event, 'camera')">Camera</button>
 					<button class="tablinks" onclick="switchTab(event, 'local')">Local</button>
 					<button class="tablinks" onclick="switchTab(event, 'result')">Result</button>
+					<button class="tablinks" onclick="switchTab(event, 'settings')">Settings</button>
 					<button class="tablinks" onclick="switchTab(event, 'template')">Template</button>
 				</div>		
 				<div>
@@ -49,7 +50,16 @@
 					<div id="result" class="tabcontent">
 					    <div id="timeElapsed"></div>
 						<div id="resultList"></div>
-					</div>			
+					</div>
+					<div id="settings" class="tabcontent">
+					    <button onclick="updateBuiltinSettings()">Update</button>
+						<label for="speed">
+								<input name="builtinMode" id="speed" type="radio">Speed</label>
+						<label for="balance">
+								<input name="builtinMode" id="balance" type="radio">Balance</label>								
+						<label for="coverage">
+								<input name="builtinMode" id="coverage" type="radio">Coverage</label>								
+					</div>						
 					<div id="template" class="tabcontent">
 						<textarea id="templateTextarea" style="width:100%;"></textarea>	
 					</div>						
@@ -109,7 +119,7 @@
 	    }
 	}
 
-    function updateSettingsFromTemplateIfExists(readerOrScanner){
+    function updateRuntimeSettingsFromTemplateIfExists(readerOrScanner){	
 		try{
 			var ta= document.getElementById("templateTextarea");
 			if (ta.value!=""){
@@ -131,7 +141,7 @@
 			let rs = await scanner.getRuntimeSettings();
 			scanner.bSaveOriCanvas = true;
 			await scanner.updateRuntimeSettings(rs);
-			updateSettingsFromTemplateIfExists(scanner);
+			updateRuntimeSettingsFromTemplateIfExists(scanner);
 			scanner.bPlaySoundOnSuccessfulRead = true;
 			scanner.setUIElement(scannerElement);
             scanner.onFrameRead = results => {
@@ -179,7 +189,7 @@
 		try{
 			let files=document.getElementById("ipt-file").files;
             reader = reader || await Dynamsoft.DBR.BarcodeReader.createInstance();
-			updateSettingsFromTemplateIfExists(reader);
+			updateRuntimeSettingsFromTemplateIfExists(reader);
             for(let i = 0; i < files.length; ++i){
                 let file = files[i];
                 let results = await reader.decode(file);
@@ -310,6 +320,21 @@
 		    return text.substring(0,100)+"...";
 		}
 		return text;
+	}
+	
+	function updateBuiltinSettings(){
+	     var builtinMode=getSelectedRadio("builtinMode");
+	     barcodeScanner.updateRuntimeSettings(builtinMode);
+	}
+	
+	function getSelectedRadio(name){
+		var radios=document.getElementsByName(name)
+		for (i = 0; i < radios.length; i++) { 
+			var r=radios[i];
+			if (r.checked==true){
+				return r.value;
+			}
+		}
 	}
 </script>
 </body>
