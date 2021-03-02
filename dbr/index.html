@@ -48,7 +48,7 @@
 					</div>
 					<div id="result" class="tabcontent">
 					    <div id="timeElapsed"></div>
-						<textarea id="resultTextarea" style="width:100%;min-height:150px;"></textarea>	
+						<div id="resultList"></div>
 					</div>			
 					<div id="template" class="tabcontent">
 						<textarea id="templateTextarea" style="width:100%;"></textarea>	
@@ -144,6 +144,8 @@
 				    var extra_msg = document.getElementById("extra_msg");
 					var imgContainer =document.getElementById("imgContainer");
 					clearElements(imgContainer,"img");
+					var resultList =document.getElementById("resultList");
+					clearElements(resultList,"p");
 					extra_msg.innerText="";
 					showCapturedImg();
 				}catch (error){
@@ -152,7 +154,10 @@
 				}
                 //alert(result.barcodeFormatString + ': ' + txt);				
 				scanner.hide();
-				showResult(result.barcodeFormatString + ': ' + txt,null)
+				var results =[];
+				results.push(result);
+				showResultList(results);
+				showResultTab(null)
 
             };
             await scanner.show();
@@ -168,24 +173,21 @@
 		var extra_msg = document.getElementById("extra_msg");
 		extra_msg.innerText="";
 		localStatus.innerText="Decoding...";
+		var resultList =document.getElementById("resultList");
+		clearElements(resultList,"p");
 		var startTime=new Date().getTime();
 		try{
 			let files=document.getElementById("ipt-file").files;
             reader = reader || await Dynamsoft.DBR.BarcodeReader.createInstance();
 			updateSettingsFromTemplateIfExists(reader);
-            let resultsToAlert = [];
             for(let i = 0; i < files.length; ++i){
                 let file = files[i];
-                resultsToAlert.push((i+1) + '. ' + file.name + ":");
                 let results = await reader.decode(file);
                 console.log(results);
-                for(let result of results){
-                    resultsToAlert.push(result.barcodeText);
-                }
+				showResultList(results);
             }
 			var endTime=new Date().getTime();
-			showResult(resultsToAlert.join('\n'),endTime-startTime);
-
+			showResultTab(endTime-startTime);
         }catch(ex){
             alert(ex.message);
             throw ex;
@@ -193,8 +195,7 @@
 		localStatus.innerText=""
 	}
 	
-	function showResult(result,elapsedTime){
-		document.getElementById("resultTextarea").value=result;
+	function showResultTab(elapsedTime){
 		if (elapsedTime!=null){
 		    document.getElementById("timeElapsed").innerText="Time: "+elapsedTime+"ms";
 		}else{
@@ -275,6 +276,40 @@
 			};			
 			fileReader.readAsDataURL(blob);	
 		});
+	}
+	
+	function showResultList(results){
+		var resultList =document.getElementById("resultList");
+		var elements = resultList.getElementsByTagName("p");
+		var startIndex = elements.length;
+		console.log(elements)
+		console.log(startIndex)
+		for (i=0;i<results.length;i++){
+			var result=results[i];
+			var p = document.createElement("p");
+			p.innerText=(i+startIndex+1)+". "+result.barcodeFormatString + ': '+showEllipsisIfNeeded(result.barcodeText);
+			p.style="text-decoration: underline;color:#1EAEDB;overflow-wrap:break-word"
+			p.addEventListener("click", function(){copyData(result.barcodeText)}, false);
+			resultList.append(p);
+		}
+	}
+	
+	function copyData(data){
+	    navigator.clipboard.writeText(data)
+		  .then(() => {
+			alert('Text copied to clipboard');
+		  })
+		  .catch(err => {
+			// This can happen if the user denies clipboard permissions:
+			console.error('Could not copy text: ', err);
+		});
+	}
+	
+	function showEllipsisIfNeeded(text){
+	    if (text.length>100){
+		    return text.substring(0,100)+"...";
+		}
+		return text;
 	}
 </script>
 </body>
