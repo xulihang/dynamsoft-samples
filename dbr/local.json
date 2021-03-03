@@ -147,6 +147,11 @@
         "LibraryFileName": "",
         "LibraryParameters": "",
         "Mode": "LM_STATISTICS"
+      },
+      {
+        "LibraryFileName": "",
+        "LibraryParameters": "",
+        "Mode": "LM_LINES"
       }
     ],
     "MaxAlgorithmThreadCount": 4,
