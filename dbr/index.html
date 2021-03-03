@@ -159,6 +159,14 @@
 	// decode video from camera
 	async function showVideo(){
 		try{
+			if (scanner!=null){
+			    if (scanner.isOpen()==true){
+					alert("Please close the scanner first.");
+					return
+				}	
+			}
+
+		    updateScannerStyle();
 			var scannerElement = document.getElementById("scanner");			
             scanner = scanner || await Dynamsoft.DBR.BarcodeScanner.createInstance();				
 			let rs = await scanner.getRuntimeSettings();
@@ -197,7 +205,6 @@
 
             };
             await scanner.show();
-			updateScannerStyle();		
         }catch(ex){
             alert(ex.message);
             throw ex;
