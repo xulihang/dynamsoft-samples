@@ -38,8 +38,10 @@
 				<div>
 					<div id="camera" class="tabcontent">
 						<button id="btn-show-scanner" onclick="showVideo()">Show scanner</button>
+						<label for="capturebox">
+								<input id="capturebox" type="checkbox" onchange="switchCaptureBox(this.checked)" checked>Show capture box</label>
 						<label for="fullscreen">
-								<input name="PixelType" id="fullscreen" type="checkbox" onchange="onFullScreen()">Full Screen</label>
+								<input id="fullscreen" type="checkbox" onchange="onFullScreen()">Full Screen</label>
 					</div>		
 					<div id="local" class="tabcontent">
 						Choose image(s) to decode:
@@ -89,7 +91,7 @@
     let reader = null;
     // scanner for decoding video
     let scanner = null;
-
+	
 	switchTab(null, 'camera')
 	showVideo();
 	
@@ -173,10 +175,11 @@
 			scanner.bSaveOriCanvas = true;
 			await scanner.updateRuntimeSettings(rs);
 			updateRuntimeSettingsFromTemplateIfExists(scanner);
-			useBuiltinSettingsIfEnabled(scanner);
+			useBuiltinSettingsIfEnabled(scanner);			
 			//scanner.intervalTime = 5000;
 			scanner.bPlaySoundOnSuccessfulRead = true;
 			await unifyCoordinateType(scanner);
+			await switchCaptureBox(document.getElementById("capturebox").checked);
 			scanner.setUIElement(scannerElement);
             scanner.onFrameRead = results => {
                 if(results.length){
@@ -209,6 +212,31 @@
             alert(ex.message);
             throw ex;
         }
+	}
+	
+	async function switchCaptureBox(checked){
+		console.log(checked);
+		if (scanner!=null){
+			let settings = await scanner.getRuntimeSettings();
+			/*
+			 * 1 means true
+			 * Using a percentage is easier
+			 * The following code shrinks the decoding region by 25% on all sides
+			 */
+			settings.region.regionMeasuredByPercentage = 1;
+			if (checked==true){
+				settings.region.regionLeft = 25;
+				settings.region.regionTop = 30;
+				settings.region.regionRight = 75;
+				settings.region.regionBottom = 60;
+			} else{
+				settings.region.regionLeft = 0;
+				settings.region.regionTop = 0;
+				settings.region.regionRight = 100;
+				settings.region.regionBottom = 100;
+			}
+			await scanner.updateRuntimeSettings(settings);
+		}
 	}
 	
 	// decode input picture
@@ -437,6 +465,7 @@
 			console.log("error");
         }
 	}
+	
 </script>
 </body>
 </html>
