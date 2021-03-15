@@ -26,6 +26,7 @@ import javafx.scene.canvas.GraphicsContext;
 import javafx.scene.control.Button;
 import javafx.scene.control.Label;
 import javafx.scene.control.TextArea;
+import javafx.scene.control.TextField;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
 import javafx.scene.layout.AnchorPane;
@@ -42,21 +43,37 @@ public class MainController implements Initializable  {
     @FXML private TextArea templateTA;
     @FXML private Canvas cv;
     @FXML private ImageView iv;
+    @FXML private TextField mrlTextField;
+    @FXML private TextField optionsTextField;
     @Override
     public void initialize(URL location, ResourceBundle resources) {
 		try {
 			br = new BarcodeReader("t0068NQAAAJYBYfmF8T9A4FyRD4gw30Kx9VtWdhk4M7K8OgvmtsAySfNNO0Fi3uIBlvoHUBWLJB4MQ1bUt9k8v+TrrG1cXio=");
 		} catch (BarcodeReaderException e) {
 			e.printStackTrace();
-		}		
-		//MediaPlayerFactory factory = new MediaPlayerFactory();
-	    //EmbeddedMediaPlayer mediaPlayer = factory.mediaPlayers().newEmbeddedMediaPlayer();
-	    //mediaPlayer.videoSurface().set(videoSurfaceForImageView(iv));
-	    //mediaPlayer.media().play("rtmp://58.200.131.2:1935/livetv/gxtv");
+		}
     }
     
     public void showVideoBtn_MouseClicked(Event event) throws Exception {
         VlcjJavaFxApplication.getPrimaryStage().show();
+        if (optionsTextField.getText()!="") {
+        	System.out.println("use options");
+        	System.out.println(optionsTextField.getText());        	
+        	VlcjJavaFxApplication.play(mrlTextField.getText(),getOptions(optionsTextField.getText()));
+        } else {
+        	VlcjJavaFxApplication.play(mrlTextField.getText());
+        }
+        
+    }
+    
+    private String[] getOptions(String options) {    	
+    	String[] items=optionsTextField.getText().split(" :");
+    	for (int i=0;i<items.length;i++) {
+    		items[i]=":"+items[i].trim();   
+    		System.out.println(items[i]);
+    	}
+    	// :dshow-vdev=Founder Camera :dshow-adev=none  :live-caching=300
+    	return items;
     }
     
     public void captureBtn_MouseClicked(Event event) throws Exception {

@@ -26,15 +26,15 @@ public class VlcjJavaFxApplication extends Application {
         return primaryStage;
     }
     
-    private final MediaPlayerFactory mediaPlayerFactory;
+    private static MediaPlayerFactory mediaPlayerFactory;
 
-    private final EmbeddedMediaPlayer embeddedMediaPlayer;
+    private static EmbeddedMediaPlayer embeddedMediaPlayer;
 
     private static ImageView videoImageView;
 
     public VlcjJavaFxApplication() {
-        this.mediaPlayerFactory = new MediaPlayerFactory();
-        this.embeddedMediaPlayer = mediaPlayerFactory.mediaPlayers().newEmbeddedMediaPlayer();
+        mediaPlayerFactory = new MediaPlayerFactory();
+        embeddedMediaPlayer = mediaPlayerFactory.mediaPlayers().newEmbeddedMediaPlayer();
     }
 
     @Override
@@ -44,8 +44,6 @@ public class VlcjJavaFxApplication extends Application {
         videoImageView.setPreserveRatio(true);
         embeddedMediaPlayer.videoSurface().set(videoSurfaceForImageView(videoImageView));
         
-        String mrl="rtmp://58.200.131.2:1935/livetv/dftv ";
-        //String mrl="udp://192.168.191.1";
         BorderPane root = new BorderPane();
         root.setStyle("-fx-background-color: black;");
 
@@ -59,10 +57,17 @@ public class VlcjJavaFxApplication extends Application {
         primaryStage.setScene(scene);
         primaryStage.show();
 
-        embeddedMediaPlayer.media().play(mrl);
         Main m = new Main();
         m.showWindow();
         
+    }
+    
+    public static void play(String mrl) {
+    	embeddedMediaPlayer.media().play(mrl);
+    }
+    
+    public static void play(String mrl,String[] options) {
+    	embeddedMediaPlayer.media().play(mrl,options);
     }
     
     public static ImageView getImageView() {
