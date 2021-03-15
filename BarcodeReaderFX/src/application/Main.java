@@ -1,5 +1,7 @@
 package application;
 	
+import com.sun.jna.NativeLibrary;
+
 import javafx.application.Application;
 import javafx.fxml.FXMLLoader;
 import javafx.stage.Stage;
@@ -12,16 +14,17 @@ public class Main extends Application {
 	private static Stage primaryStage; // **Declare static Stage**
 
     private void setPrimaryStage(Stage stage) {
-        Main.primaryStage = stage;
+        primaryStage = stage;
     }
 
     static public Stage getPrimaryStage() {
-        return Main.primaryStage;
+        return primaryStage;
     }
     
 	@Override
 	public void start(Stage primaryStage) {
 		setPrimaryStage(primaryStage);
+		NativeLibrary.addSearchPath("vlc", "C:\\Program Files\\VideoLAN\\VLC");
 		try {
 			Parent root = FXMLLoader.load(getClass()
 	                    .getResource("/application/Main.fxml"));
@@ -29,7 +32,6 @@ public class Main extends Application {
             primaryStage.setTitle("Barcode Reader");
             primaryStage.setScene(scene);
             primaryStage.show();
-	            
 		} catch(Exception e) {
 			e.printStackTrace();
 		}
@@ -37,5 +39,10 @@ public class Main extends Application {
 	
 	public static void main(String[] args) {
 		launch(args);
+	}
+	
+    public void showWindow() throws Exception {
+    	primaryStage = new Stage();
+		start(primaryStage);
 	}
 }

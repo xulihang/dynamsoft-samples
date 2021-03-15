@@ -17,6 +17,7 @@ import com.dynamsoft.dbr.Point;
 import com.dynamsoft.dbr.PublicRuntimeSettings;
 import com.dynamsoft.dbr.TextResult;
 
+import javafx.embed.swing.SwingFXUtils;
 import javafx.event.Event;
 import javafx.fxml.FXML;
 import javafx.fxml.Initializable;
@@ -26,12 +27,13 @@ import javafx.scene.control.Button;
 import javafx.scene.control.Label;
 import javafx.scene.control.TextArea;
 import javafx.scene.image.Image;
+import javafx.scene.image.ImageView;
 import javafx.scene.layout.AnchorPane;
 import javafx.scene.paint.Color;
 import javafx.stage.FileChooser;
 
 public class MainController implements Initializable  {
-	private File currentImgFile;
+	private Image currentImg;
     private BarcodeReader br;
     @FXML private Label timeLbl;
 	@FXML private Button readBtn;
@@ -39,6 +41,7 @@ public class MainController implements Initializable  {
     @FXML private TextArea resultTA;
     @FXML private TextArea templateTA;
     @FXML private Canvas cv;
+    @FXML private ImageView iv;
     @Override
     public void initialize(URL location, ResourceBundle resources) {
 		try {
@@ -46,20 +49,46 @@ public class MainController implements Initializable  {
 		} catch (BarcodeReaderException e) {
 			e.printStackTrace();
 		}		
+		//MediaPlayerFactory factory = new MediaPlayerFactory();
+	    //EmbeddedMediaPlayer mediaPlayer = factory.mediaPlayers().newEmbeddedMediaPlayer();
+	    //mediaPlayer.videoSurface().set(videoSurfaceForImageView(iv));
+	    //mediaPlayer.media().play("rtmp://58.200.131.2:1935/livetv/gxtv");
     }
     
-
-    public void readBtn_MouseClicked(Event event) throws IOException, BarcodeReaderException {
-
+    public void showVideoBtn_MouseClicked(Event event) throws Exception {
+        VlcjJavaFxApplication.getPrimaryStage().show();
+    }
+    
+    public void captureBtn_MouseClicked(Event event) throws Exception {
+        currentImg=VlcjJavaFxApplication.getImageView().getImage();
+        redrawImage(currentImg);
+    }
+    
+    public void cv_MouseClicked(Event event) {
+        System.out.println("cv Clicked!");
+        try {
+            FileChooser fileChooser = new FileChooser();
+            fileChooser.setTitle("Open Barcode File");
+            File imgFile = fileChooser.showOpenDialog(Main.getPrimaryStage());
+            currentImg =  new Image(imgFile.toURI().toString());   
+            System.out.println(currentImg.getWidth());
+            redrawImage(currentImg);
+        } catch (Exception e) {
+        	
+        }
+    }
+    
+    public void readBtn_MouseClicked(Event event) throws Exception {
     	System.out.println("Button Clicked!");    
-    	if (currentImgFile==null) {
+    	if (currentImg==null) {
     		System.out.println("no img!");   
     		return;
     	}
-    	Image img = new Image(currentImgFile.toURI().toString());
+    	decodeImg(currentImg);
+    }
+    
+    private void decodeImg(Image img) throws BarcodeReaderException, IOException {
     	redrawImage(img);
-    	String imgPath=currentImgFile.getAbsolutePath();
-    	System.out.println(imgPath);
     	String template = templateTA.getText();
     	try {
         	br.initRuntimeSettingsWithString(template,EnumConflictMode.CM_OVERWRITE);   
@@ -75,7 +104,7 @@ public class MainController implements Initializable  {
     	Long startTime = startDate.getTime();
     	Long endTime = null;
     	
-		for (TextResult tr:br.decodeFile(imgPath, "")) {
+		for (TextResult tr:br.decodeBufferedImage(SwingFXUtils.fromFXImage(img,null), "")) {
 			allResults.add(tr);
 		}
 
@@ -102,20 +131,6 @@ public class MainController implements Initializable  {
     	timeSb.append(endTime-startTime);
     	timeSb.append("ms");
     	timeLbl.setText(timeSb.toString());
-    }
- 
-    public void cv_MouseClicked(Event event) {
-        System.out.println("cv Clicked!");
-        try {
-            FileChooser fileChooser = new FileChooser();
-            fileChooser.setTitle("Open Barcode File");
-            currentImgFile = fileChooser.showOpenDialog(Main.getPrimaryStage());
-            Image img = new Image(currentImgFile.toURI().toString());
-            System.out.println(img.getWidth());
-            redrawImage(img);
-        } catch (Exception e) {
-        	
-        }
     }
     
     private void redrawImage(Image img) {
