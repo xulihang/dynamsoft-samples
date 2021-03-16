@@ -1,6 +1,4 @@
-package application;
-	
-import com.sun.jna.NativeLibrary;
+package com.dynamsoft.BarcodeReader;
 
 import javafx.application.Application;
 import javafx.fxml.FXMLLoader;
@@ -24,10 +22,9 @@ public class Main extends Application {
 	@Override
 	public void start(Stage primaryStage) {
 		setPrimaryStage(primaryStage);
-		NativeLibrary.addSearchPath("vlc", "C:\\Program Files\\VideoLAN\\VLC");
 		try {
-			Parent root = FXMLLoader.load(getClass()
-	                    .getResource("/application/Main.fxml"));
+			FXMLLoader fxmlLoader = new FXMLLoader(getClass().getResource("/com/dynamsoft/BarcodeReader/fxml/Main.fxml"));
+			Parent root = fxmlLoader.load();
 			Scene scene = new Scene(root);
             primaryStage.setTitle("Barcode Reader");
             primaryStage.setScene(scene);

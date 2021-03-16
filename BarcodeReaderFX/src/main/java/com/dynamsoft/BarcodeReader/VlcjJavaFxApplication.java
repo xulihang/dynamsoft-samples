@@ -1,4 +1,4 @@
-package application;
+package com.dynamsoft.BarcodeReader;
 
 import javafx.application.Application;
 import javafx.scene.Scene;

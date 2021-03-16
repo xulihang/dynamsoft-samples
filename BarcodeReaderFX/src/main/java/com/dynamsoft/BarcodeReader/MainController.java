@@ -1,4 +1,4 @@
-package application;
+package com.dynamsoft.BarcodeReader;
 
 import java.io.File;
 import java.io.IOException;
