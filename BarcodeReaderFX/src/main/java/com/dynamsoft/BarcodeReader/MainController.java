@@ -32,6 +32,7 @@ import javafx.scene.image.ImageView;
 import javafx.scene.layout.AnchorPane;
 import javafx.scene.paint.Color;
 import javafx.stage.FileChooser;
+import javafx.stage.Stage;
 
 public class MainController implements Initializable  {
 	private Image currentImg;
@@ -45,23 +46,31 @@ public class MainController implements Initializable  {
     @FXML private ImageView iv;
     @FXML private TextField mrlTextField;
     @FXML private TextField optionsTextField;
+	private VlcjJavaFxApplication vlcj;
     @Override
     public void initialize(URL location, ResourceBundle resources) {
 		try {
 			br = new BarcodeReader("t0068NQAAAJYBYfmF8T9A4FyRD4gw30Kx9VtWdhk4M7K8OgvmtsAySfNNO0Fi3uIBlvoHUBWLJB4MQ1bUt9k8v+TrrG1cXio=");
 		} catch (BarcodeReaderException e) {
+			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
+		vlcj = new VlcjJavaFxApplication();
     }
     
     public void showVideoBtn_MouseClicked(Event event) throws Exception {
-        VlcjJavaFxApplication.getPrimaryStage().show();
+    	if (vlcj.stage==null) {
+    		vlcj.start(new Stage());	
+    	} else {
+    		vlcj.stage.show();    		
+    	}
+    	
         if (optionsTextField.getText()!="") {
         	System.out.println("use options");
         	System.out.println(optionsTextField.getText());        	
-        	VlcjJavaFxApplication.play(mrlTextField.getText(),getOptions(optionsTextField.getText()));
+        	vlcj.play(mrlTextField.getText(),getOptions(optionsTextField.getText()));
         } else {
-        	VlcjJavaFxApplication.play(mrlTextField.getText());
+        	vlcj.play(mrlTextField.getText());
         }
         
     }
@@ -77,7 +86,7 @@ public class MainController implements Initializable  {
     }
     
     public void captureBtn_MouseClicked(Event event) throws Exception {
-        currentImg=VlcjJavaFxApplication.getImageView().getImage();
+        currentImg=vlcj.getImageView().getImage();
         redrawImage(currentImg);
     }
     

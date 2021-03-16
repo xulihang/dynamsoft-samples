@@ -16,21 +16,13 @@ import static uk.co.caprica.vlcj.javafx.videosurface.ImageViewVideoSurfaceFactor
  *
  */
 public class VlcjJavaFxApplication extends Application {
-	private static Stage primaryStage; // **Declare static Stage**
 
-    private void setPrimaryStage(Stage stage) {
-        primaryStage = stage;
-    }
+    private MediaPlayerFactory mediaPlayerFactory;
 
-    static public Stage getPrimaryStage() {
-        return primaryStage;
-    }
-    
-    private static MediaPlayerFactory mediaPlayerFactory;
+    private EmbeddedMediaPlayer embeddedMediaPlayer;
 
-    private static EmbeddedMediaPlayer embeddedMediaPlayer;
-
-    private static ImageView videoImageView;
+    private ImageView videoImageView;
+    public Stage stage;
 
     public VlcjJavaFxApplication() {
         mediaPlayerFactory = new MediaPlayerFactory();
@@ -39,7 +31,7 @@ public class VlcjJavaFxApplication extends Application {
 
     @Override
     public final void start(Stage primaryStage) throws Exception {
-    	setPrimaryStage(primaryStage);
+    	stage=primaryStage;
         videoImageView = new ImageView();
         videoImageView.setPreserveRatio(true);
         embeddedMediaPlayer.videoSurface().set(videoSurfaceForImageView(videoImageView));
@@ -56,21 +48,17 @@ public class VlcjJavaFxApplication extends Application {
         primaryStage.setTitle("vlcj JavaFX");
         primaryStage.setScene(scene);
         primaryStage.show();
-
-        Main m = new Main();
-        m.showWindow();
-        
     }
     
-    public static void play(String mrl) {
+    public void play(String mrl) {
     	embeddedMediaPlayer.media().play(mrl);
     }
     
-    public static void play(String mrl,String[] options) {
+    public void play(String mrl,String[] options) {
     	embeddedMediaPlayer.media().play(mrl,options);
     }
     
-    public static ImageView getImageView() {
+    public ImageView getImageView() {
         return videoImageView;
     }
 
