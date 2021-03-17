@@ -6,7 +6,7 @@ module com.dynamsoft.BarcodeReader {
 	requires com.sun.jna;
 	requires transitive javafx.graphics;
 	requires javafx.swing;
-	requires dbr;
+	requires transitive dbr;
 
     opens com.dynamsoft.BarcodeReader to javafx.fxml;
     exports com.dynamsoft.BarcodeReader;

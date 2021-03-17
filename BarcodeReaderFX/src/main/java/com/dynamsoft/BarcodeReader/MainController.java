@@ -17,6 +17,7 @@ import com.dynamsoft.dbr.Point;
 import com.dynamsoft.dbr.PublicRuntimeSettings;
 import com.dynamsoft.dbr.TextResult;
 
+import javafx.application.Platform;
 import javafx.embed.swing.SwingFXUtils;
 import javafx.event.Event;
 import javafx.fxml.FXML;
@@ -113,7 +114,7 @@ public class MainController implements Initializable  {
     	decodeImg(currentImg);
     }
     
-    private void decodeImg(Image img) throws BarcodeReaderException, IOException {
+    private void decodeImg(Image img) throws BarcodeReaderException, IOException, InterruptedException {
     	redrawImage(img);
     	String template = templateTA.getText();
     	try {
@@ -122,18 +123,22 @@ public class MainController implements Initializable  {
     		br.resetRuntimeSettings();
     	}
     	unifyCoordinateReturnType();
-    	
-    	List<TextResult> allResults = new ArrayList<TextResult>();
-    	
-    	StringBuilder timeSb = new StringBuilder();
     	Date startDate = new Date();
-    	Long startTime = startDate.getTime();
-    	Long endTime = null;
-    	
-		for (TextResult tr:br.decodeBufferedImage(SwingFXUtils.fromFXImage(img,null), "")) {
+    	Long startTime = startDate.getTime();    	
+    	DecodingThread dt = new DecodingThread(img, startTime, this);
+        Thread t = new Thread(dt);
+        t.start();
+    }
+    
+    public void showResults(TextResult[] results, Long startTime) {
+    	List<TextResult> allResults = new ArrayList<TextResult>();
+        
+		for (TextResult tr:results) {
 			allResults.add(tr);
 		}
-
+		StringBuilder timeSb = new StringBuilder();
+    	
+    	Long endTime = null;
     	Date endDate = new Date();
     	endTime = endDate.getTime();
 
@@ -157,6 +162,37 @@ public class MainController implements Initializable  {
     	timeSb.append(endTime-startTime);
     	timeSb.append("ms");
     	timeLbl.setText(timeSb.toString());
+    }
+    
+    class DecodingThread implements Runnable {
+    	private TextResult[] results;
+    	private Image img;
+    	private Long startTime;
+    	private MainController callback;
+    	
+    	public DecodingThread (Image img, Long startTime, MainController callback)
+        {
+            this.img = img;
+            this.startTime = startTime;
+            this.callback = callback;
+        }
+    	
+        @Override
+        public void run() {
+        	try {
+        		results=br.decodeBufferedImage(SwingFXUtils.fromFXImage(img,null),"");
+			} catch (IOException e) {
+				e.printStackTrace();
+			} catch (BarcodeReaderException e) {
+				e.printStackTrace();
+			}
+        	Platform.runLater(new Runnable() {
+        	    @Override
+        	    public void run() {
+        	    	callback.showResults(results, startTime);
+        	    }
+        	});        	
+        }
     }
     
     private void redrawImage(Image img) {
