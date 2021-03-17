@@ -116,8 +116,19 @@ public class MainController implements Initializable  {
     	return vlcj.getImageView().getImage();
     }
     
+    public void updateRuntimeSettings() throws BarcodeReaderException {
+    	String template = templateTA.getText();        	    	
+    	try {
+        	br.initRuntimeSettingsWithString(template,EnumConflictMode.CM_OVERWRITE);   
+    	}  catch (Exception e) {
+			br.resetRuntimeSettings();
+    	}    	
+    	unifyCoordinateReturnType();
+    }
+    
     public void readBtn_MouseClicked(Event event) throws Exception {
     	found=false;
+    	updateRuntimeSettings();
     	System.out.println("Button Clicked!");    
     	if (currentImg==null) {
     		System.out.println("no img!");   
@@ -128,6 +139,7 @@ public class MainController implements Initializable  {
     
     public void readVideoStreamBtn_MouseClicked(Event event) throws Exception {
     	found=false;
+    	updateRuntimeSettings();
     	if (readVideoStreamBtn.getText()!="Stop") {
         	readVideoStreamBtn.setText("Stop");
         	decodeVideoStream();    		
@@ -212,20 +224,7 @@ public class MainController implements Initializable  {
         }
     	
         @Override
-        public void run() {        	        	
-        	String template = templateTA.getText();        	
-        	
-        	try {
-            	br.initRuntimeSettingsWithString(template,EnumConflictMode.CM_OVERWRITE);   
-        	}  catch (Exception e) {
-        		try {
-					br.resetRuntimeSettings();
-				} catch (BarcodeReaderException e1) {
-					e1.printStackTrace();
-				}
-        	}
-        	
-        	unifyCoordinateReturnType();
+        public void run() {
         	Date startDate = new Date();
         	Long startTime = startDate.getTime();   
         	
