@@ -28,5 +28,6 @@
       <Label layoutX="126.0" layoutY="28.0" prefHeight="15.0" prefWidth="33.0" text="MRL:" />
       <Label layoutX="126.0" layoutY="59.0" prefHeight="15.0" prefWidth="52.0" text="Options:" />
       <TextField fx:id="optionsTextField" layoutX="189.0" layoutY="54.0" prefHeight="23.0" prefWidth="160.0" />
+      <Button fx:id="readVideoStreamBtn" layoutX="490.0" layoutY="51.0" mnemonicParsing="false" onMouseClicked="#readVideoStreamBtn_MouseClicked" prefWidth="150.0" text="Read Video Stream" AnchorPane.rightAnchor="110.0" />
    </children>
 </AnchorPane>

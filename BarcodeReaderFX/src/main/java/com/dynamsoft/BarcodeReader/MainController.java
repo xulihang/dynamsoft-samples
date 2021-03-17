@@ -7,7 +7,9 @@ import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 import java.util.ResourceBundle;
-
+import java.util.concurrent.Executors;
+import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.TimeUnit;
 
 import com.dynamsoft.dbr.BarcodeReader;
 import com.dynamsoft.dbr.BarcodeReaderException;
@@ -47,7 +49,10 @@ public class MainController implements Initializable  {
     @FXML private ImageView iv;
     @FXML private TextField mrlTextField;
     @FXML private TextField optionsTextField;
+    @FXML private Button readVideoStreamBtn;
 	private VlcjJavaFxApplication vlcj;
+	private ScheduledExecutorService timer;
+	private Boolean found;
     @Override
     public void initialize(URL location, ResourceBundle resources) {
 		try {
@@ -87,8 +92,10 @@ public class MainController implements Initializable  {
     }
     
     public void captureBtn_MouseClicked(Event event) throws Exception {
-        currentImg=vlcj.getImageView().getImage();
-        redrawImage(currentImg);
+    	if (vlcj.stage!=null) {
+            currentImg=getCurrentFrame();
+            redrawImage(currentImg);
+    	}
     }
     
     public void cv_MouseClicked(Event event) {
@@ -101,11 +108,16 @@ public class MainController implements Initializable  {
             System.out.println(currentImg.getWidth());
             redrawImage(currentImg);
         } catch (Exception e) {
-        	
+        	e.printStackTrace();
         }
     }
     
+    public Image getCurrentFrame() {
+    	return vlcj.getImageView().getImage();
+    }
+    
     public void readBtn_MouseClicked(Event event) throws Exception {
+    	found=false;
     	System.out.println("Button Clicked!");    
     	if (currentImg==null) {
     		System.out.println("no img!");   
@@ -114,33 +126,52 @@ public class MainController implements Initializable  {
     	decodeImg(currentImg);
     }
     
-    private void decodeImg(Image img) throws BarcodeReaderException, IOException, InterruptedException {
-    	redrawImage(img);
-    	String template = templateTA.getText();
-    	try {
-        	br.initRuntimeSettingsWithString(template,EnumConflictMode.CM_OVERWRITE);   
-    	}  catch (Exception e) {
-    		br.resetRuntimeSettings();
+    public void readVideoStreamBtn_MouseClicked(Event event) throws Exception {
+    	found=false;
+    	if (readVideoStreamBtn.getText()!="Stop") {
+        	readVideoStreamBtn.setText("Stop");
+        	decodeVideoStream();    		
+    	} else {
+    		stopReadingVideoStream();
     	}
-    	unifyCoordinateReturnType();
-    	Date startDate = new Date();
-    	Long startTime = startDate.getTime();    	
-    	DecodingThread dt = new DecodingThread(img, startTime, this);
+    }
+    
+    private void stopReadingVideoStream() {
+    	if (this.timer!=null) {
+			this.timer.shutdown();
+			this.timer=null;
+			readVideoStreamBtn.setText("Read Video Stream");
+		}
+    }
+    
+    private void decodeVideoStream() throws BarcodeReaderException, IOException, InterruptedException {
+    	DecodingThread dt = new DecodingThread(this);
+    	this.timer = Executors.newSingleThreadScheduledExecutor();
+    	this.timer.scheduleAtFixedRate(dt, 0, 33, TimeUnit.MILLISECONDS);
+    }
+    
+    private void decodeImg(Image img) throws BarcodeReaderException, IOException, InterruptedException {     
+    	redrawImage(img);
+    	DecodingThread dt = new DecodingThread(img, this);
         Thread t = new Thread(dt);
         t.start();
     }
     
-    public void showResults(TextResult[] results, Long startTime) {
+    public void showResults(Image img, TextResult[] results, Long timeElapsed) {
+    	if (found==true) {
+    		return;
+    	}
+    	redrawImage(img);
+    	if (results.length>0) {
+    		stopReadingVideoStream();    
+    		found=true;    				
+    		System.out.println("found");
+    	}
     	List<TextResult> allResults = new ArrayList<TextResult>();
         
 		for (TextResult tr:results) {
 			allResults.add(tr);
-		}
-		StringBuilder timeSb = new StringBuilder();
-    	
-    	Long endTime = null;
-    	Date endDate = new Date();
-    	endTime = endDate.getTime();
+		}		
 
     	StringBuilder sb = new StringBuilder(); 
     	int index=0;
@@ -157,9 +188,9 @@ public class MainController implements Initializable  {
         	sb.append("\n\n");        	
     	}
     	resultTA.setText(sb.toString());
-
+    	StringBuilder timeSb = new StringBuilder();
     	timeSb.append("Total: ");
-    	timeSb.append(endTime-startTime);
+    	timeSb.append(timeElapsed);
     	timeSb.append("ms");
     	timeLbl.setText(timeSb.toString());
     }
@@ -167,18 +198,41 @@ public class MainController implements Initializable  {
     class DecodingThread implements Runnable {
     	private TextResult[] results;
     	private Image img;
-    	private Long startTime;
     	private MainController callback;
     	
-    	public DecodingThread (Image img, Long startTime, MainController callback)
+    	public DecodingThread (Image img, MainController callback)
         {
             this.img = img;
-            this.startTime = startTime;
+            this.callback = callback;
+        }
+    	
+    	public DecodingThread (MainController callback)
+        {
             this.callback = callback;
         }
     	
         @Override
-        public void run() {
+        public void run() {        	        	
+        	String template = templateTA.getText();        	
+        	
+        	try {
+            	br.initRuntimeSettingsWithString(template,EnumConflictMode.CM_OVERWRITE);   
+        	}  catch (Exception e) {
+        		try {
+					br.resetRuntimeSettings();
+				} catch (BarcodeReaderException e1) {
+					e1.printStackTrace();
+				}
+        	}
+        	
+        	unifyCoordinateReturnType();
+        	Date startDate = new Date();
+        	Long startTime = startDate.getTime();   
+        	
+        	if (img==null) {
+        		img=callback.getCurrentFrame();
+        	}
+        	
         	try {
         		results=br.decodeBufferedImage(SwingFXUtils.fromFXImage(img,null),"");
 			} catch (IOException e) {
@@ -186,10 +240,14 @@ public class MainController implements Initializable  {
 			} catch (BarcodeReaderException e) {
 				e.printStackTrace();
 			}
+        	Long endTime = null;
+        	Date endDate = new Date();
+        	endTime = endDate.getTime();
+        	Long timeElapsed = endTime-startTime;
         	Platform.runLater(new Runnable() {
         	    @Override
         	    public void run() {
-        	    	callback.showResults(results, startTime);
+        	    	callback.showResults(img, results, timeElapsed);
         	    }
         	});        	
         }
@@ -229,8 +287,7 @@ public class MainController implements Initializable  {
 		PublicRuntimeSettings settings;
 		try {
 			settings = br.getRuntimeSettings();
-			settings.resultCoordinateType=EnumResultCoordinateType.RCT_PIXEL;
-			
+			settings.resultCoordinateType=EnumResultCoordinateType.RCT_PIXEL;			
 			br.updateRuntimeSettings(settings);
 		} catch (BarcodeReaderException e) {
 			e.printStackTrace();
