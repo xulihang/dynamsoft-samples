@@ -150,7 +150,7 @@ public class MainController implements Initializable  {
     
     private void stopReadingVideoStream() {
     	if (this.timer!=null) {
-			this.timer.shutdown();
+			this.timer.shutdownNow();
 			this.timer=null;
 			readVideoStreamBtn.setText("Read Video Stream");
 		}
@@ -159,7 +159,7 @@ public class MainController implements Initializable  {
     private void decodeVideoStream() throws BarcodeReaderException, IOException, InterruptedException {
     	DecodingThread dt = new DecodingThread(this);
     	this.timer = Executors.newSingleThreadScheduledExecutor();
-    	this.timer.scheduleAtFixedRate(dt, 0, 33, TimeUnit.MILLISECONDS);
+    	this.timer.scheduleAtFixedRate(dt, 0, 100, TimeUnit.MILLISECONDS);
     }
     
     private void decodeImg(Image img) throws BarcodeReaderException, IOException, InterruptedException {     
@@ -178,16 +178,11 @@ public class MainController implements Initializable  {
     		stopReadingVideoStream();    
     		found=true;    				
     		System.out.println("found");
-    	}
-    	List<TextResult> allResults = new ArrayList<TextResult>();
-        
-		for (TextResult tr:results) {
-			allResults.add(tr);
-		}		
+    	}	
 
     	StringBuilder sb = new StringBuilder(); 
     	int index=0;
-    	for (TextResult result:allResults) {
+    	for (TextResult result:results) {
     		index=index+1;
     		overlayCode(result);
     		sb.append(index);
