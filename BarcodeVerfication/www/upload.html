@@ -1,0 +1,26 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8" />
+<title>Upload</title>
+</head>
+<body>
+
+<form action="/ocr" method="post" enctype="multipart/form-data">
+ Choose Image: <input type="file" name="upload" />
+ Detector: <input type="text" name="detector" />
+ Recognizer: <input type="text" name="recognizer" />
+ Language: <input type="text" name="lang" />
+  <input type="submit" value="Upload" />
+</form>
+
+<form action="/ocr" method="post">
+ Image base64: <input type="text" name="base64" />
+ Detector: <input type="text" name="detector" />
+ Recognizer: <input type="text" name="recognizer" />
+ Language: <input type="text" name="lang" />
+ Date Type: <input type="text" name="data_type" value="base64"/>
+  <input type="submit" value="Upload" />
+</form>
+</body>
+</html>

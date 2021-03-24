@@ -1,0 +1,263 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<meta charset="utf-8" />
+	<title>ImageTrans Online</title>
+	<script type="text/javascript" src="tabs.js"></script>
+	<meta name="viewport" content="width=device-width,initial-scale=1.0" />
+	<link rel="stylesheet" href="css/normalize.css">
+    <link rel="stylesheet" href="css/skeleton.css">
+	<link rel="stylesheet" href="css/tabs.css">
+	<script src="fittext.js"></script>
+	<style type="text/css">
+		.img-container{
+		    position:relative;
+		}
+		
+		.textbox{
+		    position:absolute;
+			background-color: white;
+		}
+	</style>
+	<script type="text/javascript">
+	function onFileChosen(event){
+		showLocalImage(event);
+	}
+	
+	function showLocalImage(event){			
+		var file = event.target.files[0],
+			thisType = file.type,
+			thisSize = file.size,
+			reader = new FileReader();		
+				
+		reader.onload = function(e){
+		    appendSrcImg(e.target.result);
+		};
+		
+		reader.onerror = function () {
+			console.warn('oops, something went wrong.');
+		};
+		
+		reader.readAsDataURL(file);	
+	}
+	
+	function appendSrcImg(data){
+        clearPreviousResuls(false);
+		img = document.createElement("img");
+		img.src = data;
+		img.style = "width:50%;"
+		srcContainer.append(img);
+	}
+	
+	function clearElements(parent,tagName){
+	    var elements=parent.getElementsByTagName(tagName);
+		while (elements.length>0){
+		    var ele=elements[0];
+			ele.remove();
+		}
+	}
+	
+	function clearPreviousResuls(keepSrc){
+	    if (keepSrc==false){
+			var srcContainer =document.getElementById("srcContainer");
+			clearElements(srcContainer,"img");
+		}
+		var tgtContainer = document.getElementById("tgtContainer");	
+		clearElements(tgtContainer,"img");
+		var overlayContainer = document.getElementById("overlay");
+		clearElements(overlayContainer,"div");
+	}
+	
+	function uploadImg() {
+		var srcContainer = document.getElementById("srcContainer");
+		if (srcContainer.getElementsByTagName("img").length==0){
+		    alert("Please load an image first.");
+		    return
+		}
+		var status=document.getElementById("status");
+		if (status.innerText!=""){
+		    alert("Please wait.");
+		    return
+		}
+		clearPreviousResuls(true);
+		var img = srcContainer.getElementsByTagName("img")[0];
+		var data = img.src;		
+        var base64_data = data.substring(data.indexOf(",")+1,data.length);
+		
+		var detector_name=document.getElementById("detectorselect").value;
+		var recognizer_name=document.getElementById("recognizerselect").value;
+
+		
+		params='data_type=base64&base64='+encodeURIComponent(base64_data)+'&detector='+detector_name+'&recognizer='+recognizer_name;
+		console.log(params);
+		status.innerText="Loading...";
+		
+		var ajaxObj = new XMLHttpRequest();
+		ajaxObj.open('POST', 'ocr');
+		ajaxObj.setRequestHeader("Content-Type", "application/x-www-form-urlencoded; charset=UTF-8");
+		ajaxObj.send(params);
+		ajaxObj.onreadystatechange = function () {
+			status.innerText="";
+			if (ajaxObj.readyState == 4 && ajaxObj.status == 200) {
+				var jsonobject = JSON.parse(ajaxObj.responseText);
+				console.log(jsonobject);
+				img = document.createElement("img");
+				img.src = data;
+				img.style = "width:50%;";
+				tgtContainer.append(img);
+				overlayTextBoxes(jsonobject["boxes"],img);
+			}
+		}
+		ajaxObj.onerror = function () {
+			console.log("error");
+		}
+	}		
+	
+	function overlayTextBoxes(boxes,img,container){
+	    var imgHeight=img.naturalHeight;
+		var imgWidth=img.naturalWidth;
+		var overlayContainer = document.getElementById("overlay");
+
+	    for (i=0;i<boxes.length;i++){
+		    var box = boxes[i];
+			boxdiv = document.createElement("div");
+			boxdiv.className="textbox";		
+			var text = box["text"];
+            boxdiv.innerText=text;			
+			boxdiv.style.left = box["x0"]/imgWidth*100 + "%";
+			boxdiv.style.top = box["y0"]/imgHeight*100 + "%";
+			boxdiv.style.width = "max-content";
+			boxdiv.style.height = "fit-content";
+			boxdiv.style.minWidth = (box["x1"]-box["x0"])/imgWidth*100 + "%";
+			boxdiv.style.minHeight = (box["y2"]-box["y0"])/imgHeight*100 + "%";
+			boxdiv.style.margin=0;
+			boxdiv.style.padding=0;
+            boxdiv.onmouseenter= function(){
+    			console.log("mouse enter");
+			    this.style.zIndex=9999;	
+				this.style.border="2px dotted green";				
+			}
+			boxdiv.onmouseout= function(){
+			    console.log("mouse out");
+			    this.style.zIndex="";	
+				this.style.border="1px dotted red";				
+			}
+            boxdiv.style.border="1px dotted red";
+			boxdiv.contentEditable="true";
+		    overlayContainer.append(boxdiv);
+			fitText(boxdiv, 1.2);
+		}
+	}
+
+	function methodChanged(value){
+		var local=document.getElementById("local");
+		var remote=document.getElementById("remote");
+		if (value=="localfile"){
+		    local.style="";
+			remote.style="display:none";
+		}else{
+		    local.style="display:none";
+			remote.style="";
+		}
+	}
+		
+	function loadRemoteImg(){
+	    console.log("loading remote img")
+		var method=document.getElementById("methodselect").value;
+		console.log(method);
+		var url=document.getElementById("imgurl").value;
+		
+		if (method=="remoteurl_server"){
+		    alert("Downloading the image with server, please wait.");
+			var ajaxObj = new XMLHttpRequest();
+			ajaxObj.open('GET', 'image2base64?url='+url);
+			ajaxObj.send(null);
+			ajaxObj.onreadystatechange = function () {
+				if (ajaxObj.readyState == 4 && ajaxObj.status == 200) {
+				    var jsonobject = JSON.parse(ajaxObj.responseText);
+					appendSrcImg("data:image/jpeg;base64,"+jsonobject["data"]);	
+				}
+			}
+			ajaxObj.onerror = function () {
+				console.log("error");
+			}
+		} else{
+			var canvas = document.createElement("canvas")  
+			ctx = canvas.getContext('2d')
+			var img = new Image();
+			img.crossOrigin ='anonymous';
+			img.onload = function() {
+				canvas.height = img.height;
+				canvas.width = img.width;
+				ctx.drawImage(img,0,0);
+				var dataURL = canvas.toDataURL('image/jpeg');
+				appendSrcImg(dataURL);	
+				canvas = null;
+			};		
+			img.src = url;
+		}		
+	}
+	
+
+	
+	</script>  
+</head>
+<body>
+	<div class="container">
+		<div class="row">
+			<div class="tab" style="display:flex;overflow-x:auto">
+				<button class="tablinks" onclick="switchTab(event, 'uploader')">Upload Helper</button>
+				<button class="tablinks" onclick="switchTab(event, 'settings')">Settings</button>
+			</div>	
+			<div id="uploader" class="tabcontent">
+				<select size="1" id="methodselect" onchange="methodChanged(this.value)">
+					<option value="localfile">Local File</option>					
+					<option value="remoteurl">Remote URL</option>
+				</select>			
+				<span id="local">
+					Choose Image: <input id="imgfile" type="file" name="image" onchange="onFileChosen(event)" />	
+				</span>
+				<span id="remote" style="display:none">
+					<input type="text" id="imgurl" value="" placeholder="http://" />
+					<button onclick="loadRemoteImg()">LOAD</button>
+				</span>
+				Detector:
+				<select size="1" id="detectorselect">
+					<option value="craft">CRAFT</option>							
+					<option value="chineseocr">ChineseOCR</option>
+				</select>	
+				Recognizer:
+				<select size="1" id="recognizerselect">
+					<option value="opencv">OpenCV</option>							
+					<option value="chineseocr">ChineseOCR</option>
+				</select>	
+				<button onclick="uploadImg()" style="margin-left:20px;">Upload</button>
+				
+			</div>
+
+			<div id="settings" class="tabcontent">
+			  
+			</div>
+		</div>
+		<div class="row">		
+		   <div class="six columns">   
+				<div>Source:</div>
+				<div id="srcContainer" class="img-container"></div>
+		    </div>
+           <div class="six columns">   
+				<div>Target:</div>
+				<div id="tgtContainer" class="img-container">
+					<div id="overlay" style="position:absolute;left:0;top:0;height:100%;width: 50%;">
+					</div>
+					<div id="status"></div>
+				</div>		   
+		    </div>
+
+					
+		</div>
+	</div>
+	<script type="text/javascript">
+		switchTab(null,'uploader');
+	</script>
+</body>
+</html>
