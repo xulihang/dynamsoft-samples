@@ -41,9 +41,15 @@ namespace BarcodeAndLabelRecognition
             this.ClearButton = new System.Windows.Forms.Button();
             this.DBRTemplateTextBox = new System.Windows.Forms.TextBox();
             this.comboBox1 = new System.Windows.Forms.ComboBox();
-            this.label1 = new System.Windows.Forms.Label();
             this.label2 = new System.Windows.Forms.Label();
+            this.tabControl1 = new System.Windows.Forms.TabControl();
+            this.tabPage1 = new System.Windows.Forms.TabPage();
+            this.tabPage2 = new System.Windows.Forms.TabPage();
+            this.DLRTemplateTextBox = new System.Windows.Forms.TextBox();
             ((System.ComponentModel.ISupportInitialize)(this.pictureBox1)).BeginInit();
+            this.tabControl1.SuspendLayout();
+            this.tabPage1.SuspendLayout();
+            this.tabPage2.SuspendLayout();
             this.SuspendLayout();
             // 
             // pictureBox1
@@ -53,7 +59,7 @@ namespace BarcodeAndLabelRecognition
             | System.Windows.Forms.AnchorStyles.Right)));
             this.pictureBox1.Location = new System.Drawing.Point(26, 28);
             this.pictureBox1.Name = "pictureBox1";
-            this.pictureBox1.Size = new System.Drawing.Size(301, 425);
+            this.pictureBox1.Size = new System.Drawing.Size(521, 565);
             this.pictureBox1.TabIndex = 0;
             this.pictureBox1.TabStop = false;
             this.pictureBox1.Click += new System.EventHandler(this.pictureBox1_Click);
@@ -61,7 +67,7 @@ namespace BarcodeAndLabelRecognition
             // textBox1
             // 
             this.textBox1.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
-            this.textBox1.Location = new System.Drawing.Point(350, 28);
+            this.textBox1.Location = new System.Drawing.Point(577, 30);
             this.textBox1.Multiline = true;
             this.textBox1.Name = "textBox1";
             this.textBox1.ScrollBars = System.Windows.Forms.ScrollBars.Vertical;
@@ -72,7 +78,7 @@ namespace BarcodeAndLabelRecognition
             // ReadBarcodesButton
             // 
             this.ReadBarcodesButton.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
-            this.ReadBarcodesButton.Location = new System.Drawing.Point(714, 28);
+            this.ReadBarcodesButton.Location = new System.Drawing.Point(941, 28);
             this.ReadBarcodesButton.Name = "ReadBarcodesButton";
             this.ReadBarcodesButton.RightToLeft = System.Windows.Forms.RightToLeft.No;
             this.ReadBarcodesButton.Size = new System.Drawing.Size(89, 23);
@@ -84,7 +90,7 @@ namespace BarcodeAndLabelRecognition
             // ReadLabelsButton
             // 
             this.ReadLabelsButton.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
-            this.ReadLabelsButton.Location = new System.Drawing.Point(714, 75);
+            this.ReadLabelsButton.Location = new System.Drawing.Point(941, 75);
             this.ReadLabelsButton.Name = "ReadLabelsButton";
             this.ReadLabelsButton.Size = new System.Drawing.Size(89, 23);
             this.ReadLabelsButton.TabIndex = 4;
@@ -95,7 +101,7 @@ namespace BarcodeAndLabelRecognition
             // ReadLabelsWithDBRButton
             // 
             this.ReadLabelsWithDBRButton.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
-            this.ReadLabelsWithDBRButton.Location = new System.Drawing.Point(714, 122);
+            this.ReadLabelsWithDBRButton.Location = new System.Drawing.Point(941, 122);
             this.ReadLabelsWithDBRButton.Name = "ReadLabelsWithDBRButton";
             this.ReadLabelsWithDBRButton.Size = new System.Drawing.Size(89, 53);
             this.ReadLabelsWithDBRButton.TabIndex = 5;
@@ -110,7 +116,7 @@ namespace BarcodeAndLabelRecognition
             // ClearButton
             // 
             this.ClearButton.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
-            this.ClearButton.Location = new System.Drawing.Point(714, 200);
+            this.ClearButton.Location = new System.Drawing.Point(941, 200);
             this.ClearButton.Name = "ClearButton";
             this.ClearButton.Size = new System.Drawing.Size(89, 23);
             this.ClearButton.TabIndex = 6;
@@ -121,12 +127,13 @@ namespace BarcodeAndLabelRecognition
             // DBRTemplateTextBox
             // 
             this.DBRTemplateTextBox.Anchor = ((System.Windows.Forms.AnchorStyles)(((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Bottom) 
-            | System.Windows.Forms.AnchorStyles.Right)));
-            this.DBRTemplateTextBox.Location = new System.Drawing.Point(350, 255);
+            | System.Windows.Forms.AnchorStyles.Left)));
+            this.DBRTemplateTextBox.Location = new System.Drawing.Point(0, 0);
+            this.DBRTemplateTextBox.Margin = new System.Windows.Forms.Padding(0);
             this.DBRTemplateTextBox.Multiline = true;
             this.DBRTemplateTextBox.Name = "DBRTemplateTextBox";
             this.DBRTemplateTextBox.ScrollBars = System.Windows.Forms.ScrollBars.Vertical;
-            this.DBRTemplateTextBox.Size = new System.Drawing.Size(315, 198);
+            this.DBRTemplateTextBox.Size = new System.Drawing.Size(346, 300);
             this.DBRTemplateTextBox.TabIndex = 7;
             // 
             // comboBox1
@@ -138,41 +145,75 @@ namespace BarcodeAndLabelRecognition
             "Letter",
             "NumberLetter",
             "NumberUppercase"});
-            this.comboBox1.Location = new System.Drawing.Point(714, 275);
+            this.comboBox1.Location = new System.Drawing.Point(941, 275);
             this.comboBox1.Name = "comboBox1";
             this.comboBox1.Size = new System.Drawing.Size(89, 21);
             this.comboBox1.TabIndex = 8;
-            // 
-            // label1
-            // 
-            this.label1.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
-            this.label1.AutoSize = true;
-            this.label1.Location = new System.Drawing.Point(347, 239);
-            this.label1.Name = "label1";
-            this.label1.Size = new System.Drawing.Size(80, 13);
-            this.label1.TabIndex = 9;
-            this.label1.Text = "DBR Template:";
-            this.label1.Click += new System.EventHandler(this.label1_Click);
             // 
             // label2
             // 
             this.label2.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
             this.label2.AutoSize = true;
-            this.label2.Location = new System.Drawing.Point(714, 256);
+            this.label2.Location = new System.Drawing.Point(941, 256);
             this.label2.Name = "label2";
             this.label2.Size = new System.Drawing.Size(90, 13);
             this.label2.TabIndex = 10;
             this.label2.Text = "DLR OCR Model:";
             // 
+            // tabControl1
+            // 
+            this.tabControl1.Anchor = ((System.Windows.Forms.AnchorStyles)(((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Bottom) 
+            | System.Windows.Forms.AnchorStyles.Right)));
+            this.tabControl1.Controls.Add(this.tabPage1);
+            this.tabControl1.Controls.Add(this.tabPage2);
+            this.tabControl1.Location = new System.Drawing.Point(577, 256);
+            this.tabControl1.Name = "tabControl1";
+            this.tabControl1.SelectedIndex = 0;
+            this.tabControl1.Size = new System.Drawing.Size(350, 320);
+            this.tabControl1.TabIndex = 11;
+            // 
+            // tabPage1
+            // 
+            this.tabPage1.Controls.Add(this.DBRTemplateTextBox);
+            this.tabPage1.Location = new System.Drawing.Point(4, 22);
+            this.tabPage1.Name = "tabPage1";
+            this.tabPage1.Padding = new System.Windows.Forms.Padding(3);
+            this.tabPage1.Size = new System.Drawing.Size(342, 294);
+            this.tabPage1.TabIndex = 0;
+            this.tabPage1.Text = "DBR Template";
+            this.tabPage1.UseVisualStyleBackColor = true;
+            // 
+            // tabPage2
+            // 
+            this.tabPage2.Controls.Add(this.DLRTemplateTextBox);
+            this.tabPage2.Location = new System.Drawing.Point(4, 22);
+            this.tabPage2.Name = "tabPage2";
+            this.tabPage2.Padding = new System.Windows.Forms.Padding(3);
+            this.tabPage2.Size = new System.Drawing.Size(342, 294);
+            this.tabPage2.TabIndex = 1;
+            this.tabPage2.Text = "DLR Template";
+            this.tabPage2.UseVisualStyleBackColor = true;
+            // 
+            // DLRTemplateTextBox
+            // 
+            this.DLRTemplateTextBox.Anchor = ((System.Windows.Forms.AnchorStyles)(((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Bottom) 
+            | System.Windows.Forms.AnchorStyles.Left)));
+            this.DLRTemplateTextBox.Location = new System.Drawing.Point(0, 0);
+            this.DLRTemplateTextBox.Margin = new System.Windows.Forms.Padding(0);
+            this.DLRTemplateTextBox.Multiline = true;
+            this.DLRTemplateTextBox.Name = "DLRTemplateTextBox";
+            this.DLRTemplateTextBox.ScrollBars = System.Windows.Forms.ScrollBars.Vertical;
+            this.DLRTemplateTextBox.Size = new System.Drawing.Size(346, 298);
+            this.DLRTemplateTextBox.TabIndex = 12;
+            // 
             // Form1
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
-            this.ClientSize = new System.Drawing.Size(843, 478);
+            this.ClientSize = new System.Drawing.Size(1070, 618);
+            this.Controls.Add(this.tabControl1);
             this.Controls.Add(this.label2);
-            this.Controls.Add(this.label1);
             this.Controls.Add(this.comboBox1);
-            this.Controls.Add(this.DBRTemplateTextBox);
             this.Controls.Add(this.ClearButton);
             this.Controls.Add(this.ReadLabelsWithDBRButton);
             this.Controls.Add(this.ReadLabelsButton);
@@ -182,6 +223,11 @@ namespace BarcodeAndLabelRecognition
             this.Name = "Form1";
             this.Text = "Form1";
             ((System.ComponentModel.ISupportInitialize)(this.pictureBox1)).EndInit();
+            this.tabControl1.ResumeLayout(false);
+            this.tabPage1.ResumeLayout(false);
+            this.tabPage1.PerformLayout();
+            this.tabPage2.ResumeLayout(false);
+            this.tabPage2.PerformLayout();
             this.ResumeLayout(false);
             this.PerformLayout();
 
@@ -203,8 +249,11 @@ namespace BarcodeAndLabelRecognition
         private System.Windows.Forms.Button ClearButton;
         private System.Windows.Forms.TextBox DBRTemplateTextBox;
         private System.Windows.Forms.ComboBox comboBox1;
-        private System.Windows.Forms.Label label1;
         private System.Windows.Forms.Label label2;
+        private System.Windows.Forms.TabControl tabControl1;
+        private System.Windows.Forms.TabPage tabPage1;
+        private System.Windows.Forms.TabPage tabPage2;
+        private System.Windows.Forms.TextBox DLRTemplateTextBox;
     }
 }
 

@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.ComponentModel;
 using System.Data;
 using System.Drawing;
+using System.IO;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
@@ -10,6 +11,8 @@ using System.Windows.Forms;
 using Dynamsoft;
 using Dynamsoft.DBR;
 using Dynamsoft.DLR;
+using Newtonsoft.Json;
+using Newtonsoft.Json.Linq;
 
 namespace BarcodeAndLabelRecognition
 {    
@@ -41,7 +44,7 @@ namespace BarcodeAndLabelRecognition
                 return;
             }
             Console.WriteLine(filename);
-            pictureBox1.Image= Image.FromFile(filename);
+            pictureBox1.Image= PixelFormatFixed(filename);
             pictureBox1.SizeMode = PictureBoxSizeMode.Zoom;
             pictureBox1.Tag = filename;
             
@@ -59,6 +62,24 @@ namespace BarcodeAndLabelRecognition
             g.DrawLine(p, points[3], points[0]);
             g.Save();
             pictureBox1.Image = img;
+        }
+
+        private Image PixelFormatFixed(String filename)
+        {
+            // The original bitmap with the wrong pixel format. 
+            // You can check the pixel format with originalBmp.PixelFormat
+            Image img = Image.FromFile(filename);
+            Bitmap originalBmp = (Bitmap)img;
+            // Create a blank bitmap with the same dimensions
+            Bitmap tempBitmap = new Bitmap(originalBmp.Width, originalBmp.Height);
+            // From this bitmap, the graphics can be obtained, because it has the right PixelFormat
+            using (Graphics g = Graphics.FromImage(tempBitmap))
+            {
+                // Draw the original bitmap onto the graphics of the new bitmap
+                g.DrawImage(originalBmp, 0, 0);
+            }
+            // Use tempBitmap as you would have used originalBmp
+            return tempBitmap;
         }
 
         private void textBox1_TextChanged(object sender, EventArgs e)
@@ -134,14 +155,27 @@ namespace BarcodeAndLabelRecognition
             try
             {
                 labelRecognition.ResetRuntimeSettings();
-                DLR_RuntimeSettings rs = labelRecognition.GetRuntimeSettings();
-                rs.ReferenceRegion.LocalizationSourceType = EnumDLRLocalizationSourceType.DLR_LST_PREDETECTED_REGION;
-                rs.RegionPredetectionModes.Append(EnumDLRRegionPredetectionMode.DLR_RPM_GENERAL_GRAY_CONTRAST);
-                rs.RegionPredetectionModes.Append(EnumDLRRegionPredetectionMode.DLR_RPM_GENERAL_HSV_CONTRAST);
-                rs.LinesCount = 100;
-                rs.CharacterModelName = comboBox1.SelectedItem.ToString();
-                labelRecognition.UpdateRuntimeSettings(rs);
-                DLR_Result[] results = labelRecognition.RecognizeByFile(pictureBox1.Tag.ToString(), "");
+                String templateName = LoadDLRTemplate();
+                if (templateName == "")
+                {
+                    DLR_RuntimeSettings rs = labelRecognition.GetRuntimeSettings();
+                    //rs.ReferenceRegion.LocalizationSourceType = EnumDLRLocalizationSourceType.DLR_LST_PREDETECTED_REGION;
+                    //rs.RegionPredetectionModes.Append(EnumDLRRegionPredetectionMode.DLR_RPM_GENERAL_GRAY_CONTRAST);
+                    rs.RegionPredetectionModes.Append(EnumDLRRegionPredetectionMode.DLR_RPM_GENERAL_RGB_CONTRAST);
+                    //int index = rs.RegionPredetectionModes.Length;
+                    //Console.WriteLine("modes length");
+                    //Console.WriteLine(rs.RegionPredetectionModes.Length);
+                    //Console.WriteLine(rs.RegionPredetectionModes.GetValue(0));
+                    //rs.RegionPredetectionModes.Prepend(EnumDLRRegionPredetectionMode.DLR_RPM_GENERAL_HSV_CONTRAST);
+                    //Console.WriteLine(rs.RegionPredetectionModes.Length);
+                    //Console.WriteLine(rs.RegionPredetectionModes.GetValue(0));
+                    rs.LinesCount = 100;
+                    rs.CharacterModelName = comboBox1.SelectedItem.ToString();
+                    labelRecognition.UpdateRuntimeSettings(rs);
+                    //labelRecognition.SetModeArgument("RegionPredetectionModes", index, "ForeAndBackgroundColours", "[43,60,5]");
+                }
+               
+                DLR_Result[] results = labelRecognition.RecognizeByFile(pictureBox1.Tag.ToString(), templateName);
                 OutputDLRResult(results);
             }
             catch (DLR_Exception exp)
@@ -167,15 +201,21 @@ namespace BarcodeAndLabelRecognition
                 return;
             }
             TextResult[] dbr_result = (TextResult[])textBox1.Tag;
-            //labelRecognition.AppendSettingsFromString("{\"LabelRecognitionParameter\":{\"Name\":\"P1\", \"RegionPredetectionModes\":[{\"Mode\":\"DLR_RPM_GENERAL_HSV_CONTRAST\"}], \"ReferenceRegionNameArray\": [\"R1\"]},\"ReferenceRegion\":{\"Name\":\"R1\",\"Localization\":{\"SourceType\":\"DLR_LST_BARCODE\"},\"TextAreaNameArray\":[\"T1\"]},\"TextArea\":{\"Name\":\"T1\",\"CharacterModelName\":\"Number\"}}");
-            //labelRecognition.UpdateReferenceRegionFromBarcodeResults(dbr_result, "P1");
-            DLR_RuntimeSettings rs = labelRecognition.GetRuntimeSettings();
-            rs.ReferenceRegion.LocalizationSourceType = EnumDLRLocalizationSourceType.DLR_LST_BARCODE;        
-            rs.CharacterModelName = comboBox1.SelectedItem.ToString();
-            labelRecognition.UpdateRuntimeSettings(rs);
-            labelRecognition.UpdateReferenceRegionFromBarcodeResults(dbr_result,"");
+            String templateName = LoadDLRTemplate();
+            if (templateName == "")
+            {
+                DLR_RuntimeSettings rs = labelRecognition.GetRuntimeSettings();
+                rs.ReferenceRegion.LocalizationSourceType = EnumDLRLocalizationSourceType.DLR_LST_BARCODE;
+                Console.WriteLine(rs.ReferenceRegion.Points.ToString());
+                rs.LinesCount = 100;
+                rs.CharacterModelName = comboBox1.SelectedItem.ToString();
+                labelRecognition.UpdateRuntimeSettings(rs);                
+            }
+
+            labelRecognition.UpdateReferenceRegionFromBarcodeResults(dbr_result, templateName);
+            DLR_Result[] results = labelRecognition.RecognizeByFile(pictureBox1.Tag.ToString(), templateName);
             
-            DLR_Result[] results = labelRecognition.RecognizeByFile(pictureBox1.Tag.ToString(), "");
+            //labelRecognition.OutputSettingsToFile("D:\\out.json", "");
             OutputDLRResult(results);
         }
 
@@ -197,12 +237,37 @@ namespace BarcodeAndLabelRecognition
             textBox1.Text += builder;
         }
 
+        private String LoadDLRTemplate()
+        {
+            labelRecognition.ClearAppendedSettings();
+            String templateName = "";
+            if (DLRTemplateTextBox.Text != "")
+            {
+                try
+                {
+                    labelRecognition.AppendSettingsFromString(DLRTemplateTextBox.Text);
+
+                }
+                catch (Exception)
+                {
+                    MessageBox.Show("Wrong json.");
+                    throw;
+                }
+
+                JObject jo = (JObject)JsonConvert.DeserializeObject(DLRTemplateTextBox.Text);
+                List<JToken> array = jo["LabelRecognitionParameterArray"].ToList<JToken>();
+                templateName = array[0]["Name"].ToString();
+                Console.WriteLine("added template: " + templateName);
+                return templateName;
+            }
+            return "";
+        }
 
         private void ClearButton_Click(object sender, EventArgs e)
         {
             try
             {
-                pictureBox1.Image = Image.FromFile(pictureBox1.Tag.ToString());
+                pictureBox1.Image = PixelFormatFixed(pictureBox1.Tag.ToString());
                 textBox1.Text = "";
             }
             catch (Exception)
@@ -217,5 +282,7 @@ namespace BarcodeAndLabelRecognition
         {
 
         }
+
+
     }
 }
