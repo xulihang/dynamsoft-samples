@@ -50,7 +50,6 @@
 					</div>
 					<div id="remotescan">
 						<select class="source" size="1" id="remote">
-							<option>192.168.191.1</option>
 						</select>
 						<select id="remotesource"></select>
 						<input onclick="RemoteScan();" type="button" value="Remote Scan">
@@ -130,6 +129,7 @@
 
     <script type="text/javascript">
 	    var ip = document.getElementById('remote');
+		ip.options.add(new Option(window.location.hostname,window.location.hostname))
         ip.onchange = function () {
             initRemoteDWT(ip.value);
         }
@@ -294,6 +294,9 @@
 		}
 		
         function AcquireImage(isRemote) {
+			var OnAcquireImageSuccess, OnAcquireImageFailure = function () {
+				console.log("done");
+			};
 			var pixelType,feederEnabled,duplexEnabled,showUI,resolution;
 			//Pixel type
 			if (document.getElementById("BW").checked)
@@ -321,39 +324,35 @@
 			resolution = parseInt(document.getElementById("Resolution").value);
 		    if (isRemote){
 				if (DWObjectRemote){
-					var OnAcquireImageSuccess, OnAcquireImageFailure = function () {
-						  DWObjectRemote.CloseSource();
-					  };
-					  var deviceConfiguration = {
-						  SelectSourceByIndex: 0,
-						  IfShowUI: showUI,
-						  PixelType: pixelType,
-						  Resolution: resolution,
-						  IfFeederEnabled: feederEnabled,
-						  IfDuplexEnabled: duplexEnabled,
-						  IfDisableSourceAfterAcquire: true,
-						  RemoteScan: true,
-						  ShowRemoteScanUI: true
-					  };
-					  deviceConfiguration.SelectSourceByIndex = document.getElementById("remotesource").selectedIndex;
-					  DWObjectRemote.AcquireImage(deviceConfiguration, OnAcquireImageSuccess, OnAcquireImageFailure);
+					DWObjectRemote.CloseSource();
+					var sourceIndex = document.getElementById("remotesource").selectedIndex;					  
+					var deviceConfiguration = {
+					  SelectSourceByIndex: sourceIndex,
+					  IfShowUI: showUI,
+					  PixelType: pixelType,
+					  Resolution: resolution,
+					  IfFeederEnabled: feederEnabled,
+					  IfDuplexEnabled: duplexEnabled,
+					  IfDisableSourceAfterAcquire: true,
+					  RemoteScan: true,
+					  ShowRemoteScanUI: true
+					};
+					console.log("sourceIndex: "+sourceIndex);
+					DWObjectRemote.AcquireImage(deviceConfiguration, OnAcquireImageSuccess, OnAcquireImageFailure);
 				}							
 			}
 			else
 			{
-			    if (DWObject) {
-					var OnAcquireImageSuccess, OnAcquireImageFailure;
-					OnAcquireImageSuccess = OnAcquireImageFailure = function () {
-						DWObject.CloseSource();
-					};
-
-					DWObject.SelectSourceByIndex(document.getElementById("source").selectedIndex);
-					DWObject.OpenSource();
+			    if (DWObject) {		
+					DWObject.SelectSourceByIndex(document.getElementById("source").selectedIndex);				
+					DWObject.CloseSource();
+					DWObject.OpenSource();					
 					DWObject.PixelType=pixelType;
 					DWObject.IfFeederEnabled = feederEnabled;
 					DWObject.IfDuplexEnabled = duplexEnabled;
 					DWObject.IfShowUI=showUI;
 					DWObject.Resolution=resolution;
+					console.log("sourceIndex: "+document.getElementById("source").selectedIndex);
 					if (document.getElementById("ADF").checked && DWObject.IfFeederEnabled == true)  // if paper is NOT loaded on the feeder
 					{
 						if (DWObject.IfFeederLoaded != true && DWObject.ErrorCode == 0) {
