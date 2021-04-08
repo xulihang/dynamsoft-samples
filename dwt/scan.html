@@ -125,8 +125,8 @@
 				</div>					
 		   </div>
 		</div>
-	
-
+	  </div>
+    </div>
     <script type="text/javascript">
 	    var ip = document.getElementById('remote');
 		ip.options.add(new Option(window.location.hostname,window.location.hostname))
@@ -294,9 +294,6 @@
 		}
 		
         function AcquireImage(isRemote) {
-			var OnAcquireImageSuccess, OnAcquireImageFailure = function () {
-				console.log("done");
-			};
 			var pixelType,feederEnabled,duplexEnabled,showUI,resolution;
 			//Pixel type
 			if (document.getElementById("BW").checked)
@@ -324,6 +321,10 @@
 			resolution = parseInt(document.getElementById("Resolution").value);
 		    if (isRemote){
 				if (DWObjectRemote){
+					var OnAcquireImageSuccess, OnAcquireImageFailure = function () {
+						console.log("remote scan done");
+						//DWObjectRemote.CloseSource();
+					};
 					DWObjectRemote.CloseSource();
 					var sourceIndex = document.getElementById("remotesource").selectedIndex;					  
 					var deviceConfiguration = {
@@ -344,6 +345,10 @@
 			else
 			{
 			    if (DWObject) {		
+					var OnAcquireImageSuccess, OnAcquireImageFailure = function () {
+						console.log("local scan done");
+						//DWObject.CloseSource();
+					};
 					DWObject.SelectSourceByIndex(document.getElementById("source").selectedIndex);				
 					DWObject.CloseSource();
 					DWObject.OpenSource();					
@@ -360,7 +365,6 @@
 							return;
 						}
 					}
-
 
 					DWObject.IfDisableSourceAfterAcquire = true;	// Scanner source will be disabled/closed automatically after the scan.
 					DWObject.AcquireImage(OnAcquireImageSuccess, OnAcquireImageFailure);
