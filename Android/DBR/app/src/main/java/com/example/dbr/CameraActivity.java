@@ -52,11 +52,17 @@ public class CameraActivity extends AppCompatActivity {
     private Timer timer;
     private Surface texture_surface;
     private CaptureRequest.Builder requestBuilder;
+    private BarcodeReader dbr;
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_camera);
         initImageReader();
+        try {
+            dbr = new BarcodeReader("t0077xQAAAEoQXMjVnF7S9ar4W6em9rhE6UN4uhNa+YU3O8VoTOiYEG2LOvx/G5HZYmRRsWXXHDMr+z0wUHfFh1aBqBJJZ3z1KUd/ACB1Kag=");
+        } catch (BarcodeReaderException e) {
+            e.printStackTrace();
+        }
         if (checkPermission()==true){
             TextureView textureView = findViewById(R.id.textureView);
             TextureView.SurfaceTextureListener surfaceTextureListener=new TextureView.SurfaceTextureListener() {
@@ -236,12 +242,6 @@ public class CameraActivity extends AppCompatActivity {
             buffer.get(bytes);
             image.close();
             Bitmap bitmap = BitmapFactory.decodeByteArray(bytes, 0, length);
-            BarcodeReader dbr = null;
-            try {
-                dbr = new BarcodeReader("t0077xQAAAEoQXMjVnF7S9ar4W6em9rhE6UN4uhNa+YU3O8VoTOiYEG2LOvx/G5HZYmRRsWXXHDMr+z0wUHfFh1aBqBJJZ3z1KUd/ACB1Kag=");
-            } catch (BarcodeReaderException e) {
-                e.printStackTrace();
-            }
 
             TextResult[] results = new TextResult[0];
             try {
