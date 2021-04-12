@@ -19,6 +19,9 @@ allprojects {
         maven {
             url "http://download2.dynamsoft.com/maven/dbr/aar"
         }
+        flatDir {
+            dirs 'libs'
+        }
     }
 }
 

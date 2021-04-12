@@ -8,7 +8,7 @@ android {
 
     defaultConfig {
         applicationId "com.example.dbr"
-        minSdkVersion 16
+        minSdkVersion 21
         targetSdkVersion 30
         versionCode 1
         versionName "1.0"
@@ -29,6 +29,7 @@ android {
 }
 
 dependencies {
+    implementation(name: 'DynamsoftCameraEnhancer-release', ext: 'aar')
     implementation 'com.dynamsoft:dynamsoftbarcodereader:8.1.2@aar'
     implementation 'androidx.appcompat:appcompat:1.1.0'
     implementation 'com.google.android.material:material:1.1.0'

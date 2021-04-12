@@ -146,11 +146,16 @@ public class MainActivity extends AppCompatActivity {
     }
 
     public void liveScanDCEButton_Clicked(View view){
-        Toast.makeText(this, "not implemented yet" , Toast.LENGTH_LONG).show();
+        startLiveScanDCE();
     }
 
     private void startLiveScan(){
         Intent intent = new Intent(this , CameraActivity.class);
+        startActivityForResult(intent,LIVE_SCAN_CODE);
+    }
+
+    private void startLiveScanDCE(){
+        Intent intent = new Intent(this , DCEActivity.class);
         startActivityForResult(intent,LIVE_SCAN_CODE);
     }
 }
