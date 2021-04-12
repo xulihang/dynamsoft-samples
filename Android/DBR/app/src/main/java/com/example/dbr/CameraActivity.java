@@ -106,8 +106,10 @@ public class CameraActivity extends AppCompatActivity {
         timer = new Timer();
         class DecodeFrame extends TimerTask {
             public void run() {
-                refocus();
-                capture();
+                if (opened_camera!=null){
+                    refocus();
+                    capture();
+                }
             }
         }
         TimerTask decodeFrame = new DecodeFrame();
@@ -115,17 +117,12 @@ public class CameraActivity extends AppCompatActivity {
     }
 
     private void refocus(){
-        requestBuilder.set(CaptureRequest.CONTROL_AF_MODE,CaptureRequest.CONTROL_AF_MODE_AUTO);
         try {
+            requestBuilder.set(CaptureRequest.CONTROL_AF_MODE,CaptureRequest.CONTROL_AF_MODE_AUTO);
             cameraCaptureSession.setRepeatingRequest(requestBuilder.build(), null, mBackgroundHandler);
-        } catch (CameraAccessException e) {
-            e.printStackTrace();
-        }
-
-        requestBuilder.set(CaptureRequest.CONTROL_AF_TRIGGER,CaptureRequest.CONTROL_AF_TRIGGER_START);
-        try {
+            requestBuilder.set(CaptureRequest.CONTROL_AF_TRIGGER,CaptureRequest.CONTROL_AF_TRIGGER_START);
             cameraCaptureSession.capture(requestBuilder.build(), null,mBackgroundHandler);
-        } catch (CameraAccessException e) {
+        }catch (CameraAccessException e) {
             e.printStackTrace();
         }
     }
@@ -230,7 +227,7 @@ public class CameraActivity extends AppCompatActivity {
         } catch (CameraAccessException e) {
             e.printStackTrace();
         }
-        requestBuilder_image_reader.set(CaptureRequest.JPEG_ORIENTATION,90);
+
         requestBuilder_image_reader.set(CaptureRequest.CONTROL_AF_TRIGGER, CameraMetadata.CONTROL_AF_TRIGGER_START);
 
         Surface imageReaderSurface = imageReader.getSurface();
