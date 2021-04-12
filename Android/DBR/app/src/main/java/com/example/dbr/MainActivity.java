@@ -28,6 +28,7 @@ import android.widget.Toast;
 public class MainActivity extends AppCompatActivity {
 
     private static final int PICKFILE_REQUEST_CODE = 100;
+    private static final int LIVE_SCAN_CODE = 20;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -86,6 +87,12 @@ public class MainActivity extends AppCompatActivity {
                 Log.d("DBR", "No barcode found");
             }
             return;
+        } else if (requestCode == LIVE_SCAN_CODE){
+            if (data.getBooleanExtra("needRestart",false)==true){
+                startLiveScan();
+            }else{
+                Toast.makeText(this, data.getStringExtra("TextResult") , Toast.LENGTH_LONG).show();
+            }
         }
         super.onActivityResult(requestCode, resultCode, data);
     }
@@ -134,6 +141,16 @@ public class MainActivity extends AppCompatActivity {
     }
 
     public void liveScanButton_Clicked(View view){
+        //Toast.makeText(this, "not implemented yet" , Toast.LENGTH_LONG).show();
+        startLiveScan();
+    }
+
+    public void liveScanDCEButton_Clicked(View view){
         Toast.makeText(this, "not implemented yet" , Toast.LENGTH_LONG).show();
+    }
+
+    private void startLiveScan(){
+        Intent intent = new Intent(this , CameraActivity.class);
+        startActivityForResult(intent,LIVE_SCAN_CODE);
     }
 }

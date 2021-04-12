@@ -10,17 +10,14 @@
         android:id="@+id/resultTextView"
         android:layout_width="227dp"
         android:layout_height="193dp"
-        android:layout_marginTop="80dp"
-        android:layout_marginBottom="195dp"
+        android:layout_marginTop="36dp"
         android:autoText="false"
         android:scrollbars="vertical"
         android:singleLine="false"
         android:text="Result:"
-        app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintHorizontal_bias="0.495"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/button2" />
+        app:layout_constraintTop_toBottomOf="@+id/button3" />
 
     <Button
         android:id="@+id/button"
@@ -39,9 +36,22 @@
         android:id="@+id/button2"
         android:layout_width="238dp"
         android:layout_height="71dp"
-        android:layout_marginTop="54dp"
+        android:layout_marginTop="24dp"
         android:onClick="liveScanButton_Clicked"
         android:text="Live Scan"
+        app:backgroundTint="#FE8E14"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintHorizontal_bias="0.497"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/button" />
+
+    <Button
+        android:id="@+id/button3"
+        android:layout_width="238dp"
+        android:layout_height="71dp"
+        android:layout_marginTop="120dp"
+        android:onClick="liveScanDCEButton_Clicked"
+        android:text="Live Scan (DCE)"
         app:backgroundTint="#FE8E14"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintHorizontal_bias="0.497"
