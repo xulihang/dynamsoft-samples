@@ -17,6 +17,7 @@ import com.dynamsoft.dce.CameraListener;
 import com.dynamsoft.dce.CameraState;
 import com.dynamsoft.dce.CameraView;
 import com.dynamsoft.dce.Frame;
+import com.dynamsoft.dce.HardwareUtil;
 import com.google.android.material.floatingactionbutton.FloatingActionButton;
 import com.google.android.material.snackbar.Snackbar;
 
@@ -69,6 +70,20 @@ public class DCEActivity extends AppCompatActivity {
                 decodeThread.run();
             }
         });
+        boolean ifNeedFilter = true;
+        boolean ifNeedAutoFocus = true;
+        int deviceLevel = mCamera.getDeviceLevel();
+        if (deviceLevel == HardwareUtil.DEVICE_LEVEL_HIGH)
+        {
+            ifNeedFilter = false;
+            ifNeedAutoFocus = false;
+        }
+        if(deviceLevel == HardwareUtil.DEVICE_LEVEL_MID)
+        {
+            ifNeedAutoFocus = false;
+        }
+        mCamera.setForceAutoFocus(ifNeedAutoFocus);
+        mCamera.setUseFrameFilter(ifNeedFilter);
         //Start Scan
         try {
             mCamera.startScanning();
@@ -77,7 +92,7 @@ public class DCEActivity extends AppCompatActivity {
         }
     }
 
-    class DecodingThread implements Runnable {
+    class DecodingThread extends Thread {
         private Frame mFrame;
         public DecodingThread (Frame frame)
         {
