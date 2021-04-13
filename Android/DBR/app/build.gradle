@@ -30,7 +30,14 @@ android {
 
 dependencies {
     implementation(name: 'DynamsoftCameraEnhancer-release', ext: 'aar')
-    implementation 'com.dynamsoft:dynamsoftbarcodereader:8.1.2@aar'
+    implementation(name: 'DynamsoftBarcodeReaderAndroid', ext: 'aar')
+    def camerax_version = "1.0.0-beta07"
+    // CameraX core library using camera2 implementation
+    implementation "androidx.camera:camera-camera2:$camerax_version"
+    // CameraX Lifecycle Library
+    implementation "androidx.camera:camera-lifecycle:$camerax_version"
+    // CameraX View class
+    implementation "androidx.camera:camera-view:1.0.0-alpha14"
     implementation 'androidx.appcompat:appcompat:1.1.0'
     implementation 'com.google.android.material:material:1.1.0'
     implementation 'androidx.constraintlayout:constraintlayout:1.1.3'

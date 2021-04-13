@@ -34,7 +34,8 @@ public class MainActivity extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
-
+        TextView resultTextView=findViewById(R.id.resultTextView);
+        resultTextView.setMovementMethod(new ScrollingMovementMethod());
 
     }
 
@@ -81,7 +82,6 @@ public class MainActivity extends AppCompatActivity {
                 Log.d("DBR", resultContent);
 
                 TextView resultTextView=findViewById(R.id.resultTextView);
-                resultTextView.setMovementMethod(new ScrollingMovementMethod());
                 resultTextView.setText(resultContent);
             } else {
                 Log.d("DBR", "No barcode found");
@@ -91,7 +91,9 @@ public class MainActivity extends AppCompatActivity {
             if (data.getBooleanExtra("needRestart",false)==true){
                 startLiveScan();
             }else{
-                Toast.makeText(this, data.getStringExtra("TextResult") , Toast.LENGTH_LONG).show();
+                Toast.makeText(this, data.getStringExtra("TextResult") , Toast.LENGTH_SHORT).show();
+                TextView resultTextView=findViewById(R.id.resultTextView);
+                resultTextView.setText(data.getStringExtra("TextResult"));
             }
         }
         super.onActivityResult(requestCode, resultCode, data);
@@ -150,12 +152,42 @@ public class MainActivity extends AppCompatActivity {
     }
 
     private void startLiveScan(){
-        Intent intent = new Intent(this , CameraActivity.class);
-        startActivityForResult(intent,LIVE_SCAN_CODE);
+        if (checkCameraPermission()==true){
+            Intent intent = new Intent(this , CameraActivity.class);
+            startActivityForResult(intent,LIVE_SCAN_CODE);
+        }
+
     }
 
     private void startLiveScanDCE(){
-        Intent intent = new Intent(this , DCEActivity.class);
-        startActivityForResult(intent,LIVE_SCAN_CODE);
+        if (checkCameraPermission()==true){
+            Intent intent = new Intent(this , DCEActivity.class);
+            startActivityForResult(intent,LIVE_SCAN_CODE);
+        }
+    }
+
+    private boolean checkCameraPermission(){
+        if (hasCameraPermission()) {
+            return true;
+        } else {
+            Toast.makeText(this, "Please grant camera permission" , Toast.LENGTH_SHORT).show();
+            requestPermission();
+        }
+        return false;
+    }
+
+    private boolean hasCameraPermission() {
+        return ContextCompat.checkSelfPermission(
+                this,
+                Manifest.permission.CAMERA
+        ) == PackageManager.PERMISSION_GRANTED;
+    }
+
+    private void requestPermission() {
+        ActivityCompat.requestPermissions(
+                this,
+                new String[]{Manifest.permission.CAMERA},
+                10
+        );
     }
 }
