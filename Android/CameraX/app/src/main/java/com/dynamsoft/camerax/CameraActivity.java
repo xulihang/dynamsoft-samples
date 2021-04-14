@@ -44,7 +44,9 @@ import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
+import java.io.OutputStreamWriter;
 import java.nio.ByteBuffer;
+import java.nio.charset.Charset;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
@@ -148,7 +150,14 @@ public class CameraActivity extends AppCompatActivity {
                     Log.d("DBR", resultContent);
                     textView.setText(resultContent);
                     Boolean continuous = prefs.getBoolean("continuous",false);
-                    Log.d("DBR", String.valueOf(continuous));
+                    Boolean record_history = prefs.getBoolean("record_history",false);
+                    if (record_history){
+                        try {
+                            saveRecord(resultContent,image);
+                        } catch (IOException e) {
+                            e.printStackTrace();
+                        }
+                    }
                     if (continuous==false){
                         imageView.setImageBitmap(image);
                         imageView.setVisibility(View.VISIBLE);
@@ -163,6 +172,22 @@ public class CameraActivity extends AppCompatActivity {
             }
         });
 
+    }
+
+    private void saveRecord(String result,Bitmap image) throws IOException {
+        if (image!=null){
+            Long timestamp=System.currentTimeMillis();
+            File path = this.getExternalFilesDir(null);
+            File imgfile = new File(path, timestamp+".jpg");
+            File txtfile = new File(path, timestamp+".txt");
+            Log.d("DBR", imgfile.getAbsolutePath());
+            FileOutputStream outStream = new FileOutputStream(imgfile);
+            image.compress(Bitmap.CompressFormat.JPEG,50,outStream);
+            outStream.close();
+            FileOutputStream outStream2 = new FileOutputStream(txtfile);
+            outStream2.write(result.getBytes(Charset.defaultCharset()));
+            outStream2.close();
+        }
     }
 
     private Bitmap imageProxyToBitmap(ImageProxy image) throws IOException {

@@ -33,6 +33,14 @@
             android:gravity="center"
             android:onClick="settingsButton_Clicked"
             android:text="Settings" />
+
+        <Button
+            android:id="@+id/showHistoryButton"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:gravity="center"
+            android:onClick="showHistoryButton_Clicked"
+            android:text="History" />
     </LinearLayout>
 
 
