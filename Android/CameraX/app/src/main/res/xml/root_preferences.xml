@@ -13,6 +13,9 @@
         <SwitchPreferenceCompat
             app:key="record_history"
             app:title="@string/record_history"/>
+        <SwitchPreferenceCompat
+            app:key="save_image"
+            app:title="@string/save_image"/>
 
     </PreferenceCategory>
 

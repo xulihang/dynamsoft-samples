@@ -2,18 +2,22 @@ package com.dynamsoft.camerax;
 
 import androidx.appcompat.app.AppCompatActivity;
 
+import android.app.Activity;
 import android.content.Context;
 import android.database.DataSetObserver;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.os.Bundle;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.AdapterView;
 import android.widget.ImageView;
 import android.widget.ListAdapter;
 import android.widget.ListView;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import java.io.BufferedReader;
 import java.io.File;
@@ -37,19 +41,28 @@ public class HistoryActivity extends AppCompatActivity {
         ArrayList<CodeData> arrayList = new ArrayList<CodeData>();
         File directory = this.getExternalFilesDir(null);
         File[] files = directory.listFiles();
+        int itemIndex=0;
         for (int i = 0; i < files.length; i++)
         {
+            Log.d("DBR",String.valueOf(i));
             File f = files[i];
             String name=f.getName();
-            if (name.endsWith(".jpg")){
-                Long timestamp = Long.valueOf(name.replaceAll(".jpg",""));
-                String txtname = name.replaceAll(".jpg",".txt");
+            if (name.endsWith(".txt")){
+                itemIndex++;
+                Long timestamp = Long.valueOf(name.replaceAll(".txt",""));
+                String imgname = name.replaceAll(".txt",".jpg");
                 Date date = new Date(timestamp);
-                File txtFile = new File(directory,txtname);
-                Bitmap bitmap = BitmapFactory.decodeFile(f.getAbsolutePath());
-                arrayList.add(new CodeData(i+1,DateFormat.getDateTimeInstance().format(date), readText(txtFile),bitmap ));
+                File imgFile = new File(directory,imgname);
+
+                if (imgFile.exists()){
+                    Bitmap bitmap = BitmapFactory.decodeFile(imgFile.getAbsolutePath());
+                    arrayList.add(new CodeData(itemIndex,DateFormat.getDateTimeInstance().format(date), readText(f),bitmap));
+                } else{
+                    arrayList.add(new CodeData(itemIndex,DateFormat.getDateTimeInstance().format(date), readText(f),null));
+                }
             }
         }
+        Log.d("DBR",String.valueOf(arrayList.size()));
         CustomAdapter customAdapter = new CustomAdapter(this, arrayList);
         listView.setAdapter(customAdapter);
     }
@@ -83,6 +96,11 @@ public class HistoryActivity extends AppCompatActivity {
             f.delete();
         }
         loadHistory();
+    }
+
+    public void textResult_Clicked(View view){
+        TextView tr = (TextView) view;
+        Toast.makeText(HistoryActivity.this,String.valueOf(tr.getTag()), Toast.LENGTH_SHORT).show();
     }
 
     class CustomAdapter implements ListAdapter {
@@ -128,15 +146,23 @@ public class HistoryActivity extends AppCompatActivity {
             if(convertView == null) {
                 LayoutInflater layoutInflater = LayoutInflater.from(context);
                 convertView = layoutInflater.inflate(R.layout.history_item, null);
-                convertView.setOnClickListener(new View.OnClickListener() {
-                    @Override
-                    public void onClick(View v) {
-                    }
-                });
-                TextView tr = convertView.findViewById(R.id.textResult);
-                ImageView iv = convertView.findViewById(R.id.captureImageView);
-                tr.setText(cd.TimeStamp+"\n"+cd.Code);
+            }
+            convertView.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View v) {
+                }
+            });
+            TextView tr = convertView.findViewById(R.id.textResult);
+            ImageView iv = convertView.findViewById(R.id.captureImageView);
+            TextView indexTr = convertView.findViewById(R.id.itemIndex);
+            tr.setText(cd.TimeStamp+"\n"+cd.Code);
+            tr.setTag(cd.Code);
+            indexTr.setText(String.valueOf(cd.index));
+            if (cd.Image!=null){
                 iv.setImageBitmap(cd.Image);
+                iv.setVisibility(View.VISIBLE);
+            }else{
+                iv.setVisibility(View.INVISIBLE);
             }
             return convertView;
         }

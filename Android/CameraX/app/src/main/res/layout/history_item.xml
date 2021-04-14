@@ -22,10 +22,10 @@
         android:layout_height="88dp"
         android:layout_marginStart="25dp"
         android:layout_marginTop="20dp"
-        android:layout_marginEnd="17dp"
+        android:layout_marginEnd="7dp"
+        android:onClick="textResult_Clicked"
         android:text="TextView"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintHorizontal_bias="0.0"
+        app:layout_constraintEnd_toStartOf="@+id/itemIndex"
         app:layout_constraintStart_toEndOf="@+id/captureImageView"
         app:layout_constraintTop_toTopOf="parent" />
 
@@ -35,6 +35,8 @@
         android:layout_height="50dp"
         android:layout_marginTop="21dp"
         android:layout_marginEnd="13dp"
+        android:text="0"
+        android:textAlignment="textEnd"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintTop_toTopOf="parent" />
 </androidx.constraintlayout.widget.ConstraintLayout>

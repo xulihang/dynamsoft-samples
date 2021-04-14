@@ -181,9 +181,12 @@ public class CameraActivity extends AppCompatActivity {
             File imgfile = new File(path, timestamp+".jpg");
             File txtfile = new File(path, timestamp+".txt");
             Log.d("DBR", imgfile.getAbsolutePath());
-            FileOutputStream outStream = new FileOutputStream(imgfile);
-            image.compress(Bitmap.CompressFormat.JPEG,50,outStream);
-            outStream.close();
+            Boolean save_image = prefs.getBoolean("save_image",false);
+            if (save_image){
+                FileOutputStream outStream = new FileOutputStream(imgfile);
+                image.compress(Bitmap.CompressFormat.JPEG,50,outStream);
+                outStream.close();
+            }
             FileOutputStream outStream2 = new FileOutputStream(txtfile);
             outStream2.write(result.getBytes(Charset.defaultCharset()));
             outStream2.close();
