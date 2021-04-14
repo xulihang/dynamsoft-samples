@@ -1,0 +1,14 @@
+<resources>
+    <string name="app_name">CameraX</string>
+    <string name="title_activity_settings">SettingsActivity</string>
+
+    <!-- Preference Titles -->
+    <string name="Camera_header">Camera</string>
+    <string name="History_header">History</string>
+
+    <!-- Camera Preferences -->
+    <string name="continuous_scan">Continuous Scan</string>
+
+    <!-- History Preferences -->
+    <string name="record_history">Record History</string>
+</resources>

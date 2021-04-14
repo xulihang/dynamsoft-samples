@@ -1,0 +1,19 @@
+<PreferenceScreen xmlns:app="http://schemas.android.com/apk/res-auto">
+
+    <PreferenceCategory app:title="@string/Camera_header">
+
+        <SwitchPreferenceCompat
+            app:key="continuous"
+            app:title="@string/continuous_scan"/>
+
+    </PreferenceCategory>
+
+    <PreferenceCategory app:title="@string/History_header">
+
+        <SwitchPreferenceCompat
+            app:key="record_history"
+            app:title="@string/record_history"/>
+
+    </PreferenceCategory>
+
+</PreferenceScreen>
