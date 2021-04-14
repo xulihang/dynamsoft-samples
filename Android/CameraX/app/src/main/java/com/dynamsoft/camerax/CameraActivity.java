@@ -7,6 +7,8 @@ import androidx.camera.core.CameraSelector;
 import androidx.camera.core.ImageAnalysis;
 import androidx.camera.core.ImageProxy;
 import androidx.camera.core.Preview;
+import androidx.camera.core.UseCaseGroup;
+import androidx.camera.core.ViewPort;
 import androidx.camera.core.impl.CaptureConfig;
 import androidx.camera.core.impl.SessionConfig;
 import androidx.camera.lifecycle.ProcessCameraProvider;
@@ -27,11 +29,15 @@ import android.media.Image;
 import android.os.Bundle;
 import android.os.Environment;
 import android.util.Log;
+import android.util.Rational;
 import android.util.Size;
 import android.view.OrientationEventListener;
 import android.view.View;
 import android.widget.ImageView;
+import android.widget.SeekBar;
 import android.widget.TextView;
+import android.widget.Toast;
+import android.widget.ToggleButton;
 
 import com.dynamsoft.dbr.BarcodeReader;
 import com.dynamsoft.dbr.BarcodeReaderException;
@@ -77,6 +83,24 @@ public class CameraActivity extends AppCompatActivity {
         textView = findViewById(R.id.resultView);
         imageView = findViewById(R.id.imageView);
         imageView.setVisibility(View.INVISIBLE);
+        SeekBar zoomRatioSeekBar = findViewById(R.id.zoomRatioSeekBar);
+        zoomRatioSeekBar.setOnSeekBarChangeListener(new SeekBar.OnSeekBarChangeListener() {
+            @Override
+            public void onProgressChanged(SeekBar seekBar, int progress, boolean fromUser) {
+                if (fromUser){
+                    camera.getCameraControl().setLinearZoom((float) progress/100);
+                }
+            }
+            @Override
+            public void onStartTrackingTouch(SeekBar seekBar) {
+
+            }
+            @Override
+            public void onStopTrackingTouch(SeekBar seekBar) {
+
+            }
+        });
+
         cameraProviderFuture.addListener(new Runnable() {
             @Override
             public void run() {
@@ -100,12 +124,17 @@ public class CameraActivity extends AppCompatActivity {
 
     }
 
+    public void torchToggled(View view){
+        ToggleButton btn= (ToggleButton) view;
+        camera.getCameraControl().enableTorch(btn.isChecked());
+    }
+
+    @SuppressLint("UnsafeExperimentalUsageError")
     private void bindImageAnalysis(@NonNull ProcessCameraProvider cameraProvider) {
         ImageAnalysis imageAnalysis =
                 new ImageAnalysis.Builder().setTargetResolution(new Size(1280, 720))
                         .setBackpressureStrategy(ImageAnalysis.STRATEGY_KEEP_ONLY_LATEST).build();
         imageAnalysis.setAnalyzer(exec, new ImageAnalysis.Analyzer() {
-            @SuppressLint("UnsafeExperimentalUsageError")
             @Override
             public void analyze(@NonNull ImageProxy image) {
                 if (imageView.getVisibility()==View.VISIBLE && prefs.getBoolean("continuous",false)==false){ //non-continuous, scanned
@@ -134,8 +163,14 @@ public class CameraActivity extends AppCompatActivity {
         CameraSelector cameraSelector = new CameraSelector.Builder()
                 .requireLensFacing(CameraSelector.LENS_FACING_BACK).build();
         preview.setSurfaceProvider(previewView.createSurfaceProvider());
-        camera=cameraProvider.bindToLifecycle((LifecycleOwner)this, cameraSelector,
-                imageAnalysis, preview);
+
+
+        UseCaseGroup useCaseGroup = new UseCaseGroup.Builder()
+                .addUseCase(preview)
+                .addUseCase(imageAnalysis)
+                .build();
+
+        camera=cameraProvider.bindToLifecycle((LifecycleOwner)this, cameraSelector, useCaseGroup);
     }
 
     private void showResult(Bitmap image,TextResult[] results){
@@ -164,10 +199,9 @@ public class CameraActivity extends AppCompatActivity {
                     }else{
                         imageView.setVisibility(View.INVISIBLE);
                     }
-                } else {
+                } else if (imageView.getVisibility()!=View.VISIBLE) {
                     Log.d("DBR", "No barcode found");
                     textView.setText("");
-                    imageView.setVisibility(View.INVISIBLE);
                 }
             }
         });

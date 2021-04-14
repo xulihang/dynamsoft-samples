@@ -46,4 +46,31 @@
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent"
         app:srcCompat="@drawable/ic_launcher_foreground" />
+
+    <SeekBar
+        android:id="@+id/zoomRatioSeekBar"
+        android:layout_width="400dp"
+        android:layout_height="41dp"
+        android:max="100"
+        android:progress="0"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent" />
+
+    <ToggleButton
+        android:id="@+id/torchToggleButton"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="50dp"
+        android:background="#80000000"
+        android:checked="false"
+        android:onClick="torchToggled"
+        android:text="ToggleButton"
+        android:textColor="#DAD5DF"
+        android:textOff="Torch OFF"
+        android:textOn="Torch ON"
+        android:textSize="12sp"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent" />
+
 </androidx.constraintlayout.widget.ConstraintLayout>
