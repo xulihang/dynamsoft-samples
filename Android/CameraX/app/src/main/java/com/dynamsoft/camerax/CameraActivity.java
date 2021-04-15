@@ -165,7 +165,7 @@ public class CameraActivity extends AppCompatActivity {
                 int length= buffer.remaining();
                 byte[] bytes= new byte[length];
                 buffer.get(bytes);
-                int rotation=image.getImageInfo().getRotationDegrees();
+                int rotationDegrees =image.getImageInfo().getRotationDegrees();
 
                 ImageData imageData= new ImageData(bytes,image.getWidth(), image.getHeight(),nRowStride *nPixelStride);
                 TextResult[] results = new TextResult[0];
@@ -178,7 +178,7 @@ public class CameraActivity extends AppCompatActivity {
                     YuvToRgbConverter converter = new YuvToRgbConverter(CameraActivity.this);
                     Bitmap bitmap = Bitmap.createBitmap(image.getWidth(),image.getHeight(), Bitmap.Config.ARGB_8888);
                     converter.yuvToRgb(image.getImage(),bitmap);
-                    showResult(bitmap,results,rotation);
+                    showResult(bitmap,results,rotationDegrees );
                 } else{
                     showResult(results);
                 }
@@ -204,7 +204,7 @@ public class CameraActivity extends AppCompatActivity {
         showResult(null,results,0);
     }
 
-    private void showResult(Bitmap bitmap,TextResult[] results,int rotation){
+    private void showResult(Bitmap bitmap,TextResult[] results,int rotationDegrees ){
         this.runOnUiThread(new Runnable() {
             @SuppressLint("UnsafeExperimentalUsageError")
             @Override
@@ -222,13 +222,13 @@ public class CameraActivity extends AppCompatActivity {
 
                     if (record_history){
                         try {
-                            saveRecord(resultContent,rotatedBitmap(bitmap,rotation));
+                            saveRecord(resultContent,rotatedBitmap(bitmap,rotationDegrees ));
                         } catch (IOException e) {
                             e.printStackTrace();
                         }
                     }
                     if (continuous==false){
-                        imageView.setImageBitmap(rotatedBitmap(bitmap,rotation));
+                        imageView.setImageBitmap(rotatedBitmap(bitmap,rotationDegrees ));
                         imageView.setVisibility(View.VISIBLE);
                     }else{
                         imageView.setVisibility(View.INVISIBLE);
@@ -242,9 +242,9 @@ public class CameraActivity extends AppCompatActivity {
 
     }
 
-    private Bitmap rotatedBitmap(Bitmap bitmap,int rotation){
+    private Bitmap rotatedBitmap(Bitmap bitmap,int rotationDegrees){
         Matrix m = new Matrix();
-        m.postRotate(rotation);
+        m.postRotate(rotationDegrees);
         Bitmap bitmapRotated = Bitmap.createBitmap(bitmap,0,0,bitmap.getWidth(),bitmap.getHeight(),m,false);
         return bitmapRotated;
     }
