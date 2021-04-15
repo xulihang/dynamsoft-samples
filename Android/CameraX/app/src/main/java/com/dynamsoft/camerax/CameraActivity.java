@@ -1,6 +1,7 @@
 package com.dynamsoft.camerax;
 
 import androidx.annotation.NonNull;
+import androidx.annotation.RequiresApi;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.camera.core.Camera;
 import androidx.camera.core.CameraSelector;
@@ -23,15 +24,19 @@ import android.content.SharedPreferences;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.graphics.ImageFormat;
+import android.graphics.Matrix;
 import android.graphics.Rect;
 import android.graphics.YuvImage;
 import android.media.Image;
+import android.os.Build;
 import android.os.Bundle;
 import android.os.Environment;
 import android.util.Log;
 import android.util.Rational;
 import android.util.Size;
+import android.view.Display;
 import android.view.OrientationEventListener;
+import android.view.Surface;
 import android.view.View;
 import android.widget.ImageView;
 import android.widget.SeekBar;
@@ -42,6 +47,9 @@ import android.widget.ToggleButton;
 import com.dynamsoft.dbr.BarcodeReader;
 import com.dynamsoft.dbr.BarcodeReaderException;
 import com.dynamsoft.dbr.EnumImagePixelFormat;
+import com.dynamsoft.dbr.EnumIntermediateResultSavingMode;
+import com.dynamsoft.dbr.EnumIntermediateResultType;
+import com.dynamsoft.dbr.PublicRuntimeSettings;
 import com.dynamsoft.dbr.TextResult;
 import com.google.common.util.concurrent.ListenableFuture;
 
@@ -75,6 +83,10 @@ public class CameraActivity extends AppCompatActivity {
         prefs = PreferenceManager.getDefaultSharedPreferences(this);
         try {
             dbr = new BarcodeReader("t0077xQAAAEoQXMjVnF7S9ar4W6em9rhE6UN4uhNa+YU3O8VoTOiYEG2LOvx/G5HZYmRRsWXXHDMr+z0wUHfFh1aBqBJJZ3z1KUd/ACB1Kag=");
+            PublicRuntimeSettings rs = dbr.getRuntimeSettings();
+            rs.intermediateResultSavingMode= EnumIntermediateResultSavingMode.IRSM_MEMORY;
+            rs.intermediateResultTypes= EnumIntermediateResultType.IRT_ORIGINAL_IMAGE;
+            dbr.updateRuntimeSettings(rs);
         } catch (BarcodeReaderException e) {
             e.printStackTrace();
         }
@@ -135,18 +147,21 @@ public class CameraActivity extends AppCompatActivity {
                 new ImageAnalysis.Builder().setTargetResolution(new Size(1280, 720))
                         .setBackpressureStrategy(ImageAnalysis.STRATEGY_KEEP_ONLY_LATEST).build();
         imageAnalysis.setAnalyzer(exec, new ImageAnalysis.Analyzer() {
+            @RequiresApi(api = Build.VERSION_CODES.O)
             @Override
             public void analyze(@NonNull ImageProxy image) {
                 if (imageView.getVisibility()==View.VISIBLE && prefs.getBoolean("continuous",false)==false){ //non-continuous, scanned
                     image.close();
                     return;
                 }
+                Image im = image.getImage();
                 ByteBuffer buffer = image.getPlanes()[0].getBuffer();
                 int nRowStride = image.getPlanes()[0].getRowStride();
                 int nPixelStride = image.getPlanes()[0].getPixelStride();
                 int length= buffer.remaining();
                 byte[] bytes= new byte[length];
                 buffer.get(bytes);
+
                 ImageData imageData= new ImageData(bytes,image.getWidth(), image.getHeight(),nRowStride *nPixelStride);
                 TextResult[] results = new TextResult[0];
                 try {
@@ -154,7 +169,18 @@ public class CameraActivity extends AppCompatActivity {
                 } catch (BarcodeReaderException e) {
                     e.printStackTrace();
                 }
-                showResult(previewView.getBitmap(),results);
+                if (results.length>0){
+                    Matrix m = new Matrix();
+                    m.postRotate(camera.getCameraInfo().getSensorRotationDegrees());
+                    YuvToRgbConverter converter = new YuvToRgbConverter(CameraActivity.this);
+                    Bitmap bitmap = Bitmap.createBitmap(image.getWidth(),image.getHeight(), Bitmap.Config.ARGB_8888);
+                    converter.yuvToRgb(image.getImage(),bitmap);
+                    Bitmap bitmapRotated = Bitmap.createBitmap(bitmap,0,0,bitmap.getWidth(),bitmap.getHeight(),m,false);
+                    showResult(bitmapRotated,results);
+                } else{
+                    showResult(null,results);
+                }
+
                 image.close();
             }
         });
@@ -164,7 +190,6 @@ public class CameraActivity extends AppCompatActivity {
                 .requireLensFacing(CameraSelector.LENS_FACING_BACK).build();
         preview.setSurfaceProvider(previewView.createSurfaceProvider());
 
-
         UseCaseGroup useCaseGroup = new UseCaseGroup.Builder()
                 .addUseCase(preview)
                 .addUseCase(imageAnalysis)
@@ -173,11 +198,13 @@ public class CameraActivity extends AppCompatActivity {
         camera=cameraProvider.bindToLifecycle((LifecycleOwner)this, cameraSelector, useCaseGroup);
     }
 
-    private void showResult(Bitmap image,TextResult[] results){
+    private void showResult(Bitmap bitmap,TextResult[] results){
         this.runOnUiThread(new Runnable() {
+            @SuppressLint("UnsafeExperimentalUsageError")
             @Override
             public void run() {
                 if (results.length > 0) {
+
                     String resultContent = "Found " + results.length + " barcode(s):\n";
                     for (int i = 0; i < results.length; i++) {
                         resultContent += results[i].barcodeText + "\n";
@@ -188,13 +215,14 @@ public class CameraActivity extends AppCompatActivity {
                     Boolean record_history = prefs.getBoolean("record_history",false);
                     if (record_history){
                         try {
-                            saveRecord(resultContent,image);
+                            saveRecord(resultContent,bitmap);
                         } catch (IOException e) {
                             e.printStackTrace();
                         }
                     }
                     if (continuous==false){
-                        imageView.setImageBitmap(image);
+                        imageView.setImageBitmap(bitmap);
+
                         imageView.setVisibility(View.VISIBLE);
                     }else{
                         imageView.setVisibility(View.INVISIBLE);
@@ -227,25 +255,12 @@ public class CameraActivity extends AppCompatActivity {
         }
     }
 
-    private Bitmap imageProxyToBitmap(ImageProxy image) throws IOException {
+
+    //use YuvToRgbConverter instead
+    private Bitmap imageProxyToBitmap(byte[] bytes,int[] strides,int width, int height) throws IOException {
         @SuppressLint("UnsafeExperimentalUsageError")
-        Image.Plane[] planes = image.getImage().getPlanes();
-        ByteBuffer yBuffer = planes[0].getBuffer();
-        ByteBuffer uBuffer = planes[1].getBuffer();
-        ByteBuffer vBuffer = planes[2].getBuffer();
 
-        int ySize = yBuffer.remaining();
-        int uSize = uBuffer.remaining();
-        int vSize = vBuffer.remaining();
-
-        byte[] nv21 = new byte[ySize + uSize + vSize];
-        //U and V are swapped
-        yBuffer.get(nv21, 0, ySize);
-        vBuffer.get(nv21, ySize, vSize);
-        uBuffer.get(nv21, ySize + vSize, uSize);
-
-        YuvImage yuvImage = new YuvImage(nv21, ImageFormat.NV21, image.getWidth(), image.getHeight(), null);
-
+        YuvImage yuvImage = new YuvImage(bytes, ImageFormat.NV21, width, height, strides);
         ByteArrayOutputStream out = new ByteArrayOutputStream();
         yuvImage.compressToJpeg(new Rect(0, 0, yuvImage.getWidth(), yuvImage.getHeight()), 75, out);
         //saveImage(out);
