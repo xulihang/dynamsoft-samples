@@ -165,6 +165,7 @@ public class CameraActivity extends AppCompatActivity {
                 int length= buffer.remaining();
                 byte[] bytes= new byte[length];
                 buffer.get(bytes);
+                int rotation=image.getImageInfo().getRotationDegrees();
 
                 ImageData imageData= new ImageData(bytes,image.getWidth(), image.getHeight(),nRowStride *nPixelStride);
                 TextResult[] results = new TextResult[0];
@@ -177,9 +178,9 @@ public class CameraActivity extends AppCompatActivity {
                     YuvToRgbConverter converter = new YuvToRgbConverter(CameraActivity.this);
                     Bitmap bitmap = Bitmap.createBitmap(image.getWidth(),image.getHeight(), Bitmap.Config.ARGB_8888);
                     converter.yuvToRgb(image.getImage(),bitmap);
-                    showResult(bitmap,results);
+                    showResult(bitmap,results,rotation);
                 } else{
-                    showResult(null,results);
+                    showResult(results);
                 }
 
                 image.close();
@@ -199,7 +200,11 @@ public class CameraActivity extends AppCompatActivity {
         camera=cameraProvider.bindToLifecycle((LifecycleOwner)this, cameraSelector, useCaseGroup);
     }
 
-    private void showResult(Bitmap bitmap,TextResult[] results){
+    private void showResult(TextResult[] results){
+        showResult(null,results,0);
+    }
+
+    private void showResult(Bitmap bitmap,TextResult[] results,int rotation){
         this.runOnUiThread(new Runnable() {
             @SuppressLint("UnsafeExperimentalUsageError")
             @Override
@@ -217,13 +222,13 @@ public class CameraActivity extends AppCompatActivity {
 
                     if (record_history){
                         try {
-                            saveRecord(resultContent,rotatedBitmap(bitmap));
+                            saveRecord(resultContent,rotatedBitmap(bitmap,rotation));
                         } catch (IOException e) {
                             e.printStackTrace();
                         }
                     }
                     if (continuous==false){
-                        imageView.setImageBitmap(rotatedBitmap(bitmap));
+                        imageView.setImageBitmap(rotatedBitmap(bitmap,rotation));
                         imageView.setVisibility(View.VISIBLE);
                     }else{
                         imageView.setVisibility(View.INVISIBLE);
@@ -237,9 +242,9 @@ public class CameraActivity extends AppCompatActivity {
 
     }
 
-    private Bitmap rotatedBitmap(Bitmap bitmap){
+    private Bitmap rotatedBitmap(Bitmap bitmap,int rotation){
         Matrix m = new Matrix();
-        m.postRotate(camera.getCameraInfo().getSensorRotationDegrees());
+        m.postRotate(rotation);
         Bitmap bitmapRotated = Bitmap.createBitmap(bitmap,0,0,bitmap.getWidth(),bitmap.getHeight(),m,false);
         return bitmapRotated;
     }
@@ -281,7 +286,6 @@ public class CameraActivity extends AppCompatActivity {
     //use YuvToRgbConverter instead
     private Bitmap imageProxyToBitmap(byte[] bytes,int[] strides,int width, int height) throws IOException {
         @SuppressLint("UnsafeExperimentalUsageError")
-
         YuvImage yuvImage = new YuvImage(bytes, ImageFormat.NV21, width, height, strides);
         ByteArrayOutputStream out = new ByteArrayOutputStream();
         yuvImage.compressToJpeg(new Rect(0, 0, yuvImage.getWidth(), yuvImage.getHeight()), 75, out);
