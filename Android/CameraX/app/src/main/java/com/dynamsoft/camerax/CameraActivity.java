@@ -4,10 +4,16 @@ import androidx.annotation.NonNull;
 import androidx.annotation.RequiresApi;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.camera.core.Camera;
+import androidx.camera.core.CameraControl;
 import androidx.camera.core.CameraSelector;
+import androidx.camera.core.FocusMeteringAction;
+import androidx.camera.core.FocusMeteringResult;
 import androidx.camera.core.ImageAnalysis;
 import androidx.camera.core.ImageProxy;
+import androidx.camera.core.MeteringPoint;
+import androidx.camera.core.MeteringPointFactory;
 import androidx.camera.core.Preview;
+import androidx.camera.core.SurfaceOrientedMeteringPointFactory;
 import androidx.camera.core.UseCaseGroup;
 import androidx.camera.core.ViewPort;
 import androidx.camera.core.impl.CaptureConfig;
@@ -38,6 +44,7 @@ import android.util.Log;
 import android.util.Rational;
 import android.util.Size;
 import android.view.Display;
+import android.view.MotionEvent;
 import android.view.OrientationEventListener;
 import android.view.Surface;
 import android.view.View;
@@ -68,6 +75,7 @@ import java.nio.charset.Charset;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
+import java.util.concurrent.TimeUnit;
 
 public class CameraActivity extends AppCompatActivity {
     private PreviewView previewView;
@@ -209,6 +217,26 @@ public class CameraActivity extends AppCompatActivity {
         camera=cameraProvider.bindToLifecycle((LifecycleOwner)this, cameraSelector, useCaseGroup);
     }
 
+    @Override
+    public boolean onTouchEvent(MotionEvent event) {
+        // TODO Auto-generated method stub
+        focus(previewView.getWidth(),previewView.getHeight(),event.getX(),event.getY());
+        return super.onTouchEvent(event);
+    }
+
+    private void focus(float width, float height, float x, float y){
+        CameraControl cameraControl=camera.getCameraControl();
+        MeteringPointFactory factory = new SurfaceOrientedMeteringPointFactory(width, height);
+        MeteringPoint point = factory.createPoint(x, y);
+        FocusMeteringAction action = new FocusMeteringAction.Builder(point, FocusMeteringAction.FLAG_AF)
+                //.addPoint(point2, FocusMeteringAction.FLAG_AE) // could have many
+                // auto calling cancelFocusAndMetering in 5 seconds
+                .setAutoCancelDuration(5, TimeUnit.SECONDS)
+                .build();
+
+        ListenableFuture future = cameraControl.startFocusAndMetering(action);
+    }
+
     private void showResult(TextResult[] results){
         showResult(null,results,0);
     }
@@ -261,6 +289,7 @@ public class CameraActivity extends AppCompatActivity {
     private void overlay(TextResult[] results,Bitmap bitmap) {
         Canvas c = new Canvas(bitmap);
         Paint p = new Paint();
+        p.setStrokeWidth(5);
         p.setColor(Color.RED);
         for (int i=0;i<results.length;i++){
             TextResult result = results[i];
