@@ -7,7 +7,6 @@ import androidx.camera.core.Camera;
 import androidx.camera.core.CameraControl;
 import androidx.camera.core.CameraSelector;
 import androidx.camera.core.FocusMeteringAction;
-import androidx.camera.core.FocusMeteringResult;
 import androidx.camera.core.ImageAnalysis;
 import androidx.camera.core.ImageProxy;
 import androidx.camera.core.MeteringPoint;
@@ -15,9 +14,6 @@ import androidx.camera.core.MeteringPointFactory;
 import androidx.camera.core.Preview;
 import androidx.camera.core.SurfaceOrientedMeteringPointFactory;
 import androidx.camera.core.UseCaseGroup;
-import androidx.camera.core.ViewPort;
-import androidx.camera.core.impl.CaptureConfig;
-import androidx.camera.core.impl.SessionConfig;
 import androidx.camera.lifecycle.ProcessCameraProvider;
 import androidx.camera.view.PreviewView;
 import androidx.core.content.ContextCompat;
@@ -25,7 +21,6 @@ import androidx.lifecycle.LifecycleOwner;
 import androidx.preference.PreferenceManager;
 
 import android.annotation.SuppressLint;
-import android.content.Intent;
 import android.content.SharedPreferences;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
@@ -39,14 +34,10 @@ import android.graphics.YuvImage;
 import android.media.Image;
 import android.os.Build;
 import android.os.Bundle;
-import android.os.Environment;
-import android.text.method.Touch;
 import android.util.Log;
-import android.util.Rational;
 import android.util.Size;
 import android.view.Display;
 import android.view.MotionEvent;
-import android.view.OrientationEventListener;
 import android.view.Surface;
 import android.view.View;
 import android.widget.ImageView;
@@ -67,10 +58,8 @@ import com.google.common.util.concurrent.ListenableFuture;
 
 import java.io.ByteArrayOutputStream;
 import java.io.File;
-import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
-import java.io.OutputStreamWriter;
 import java.nio.ByteBuffer;
 import java.nio.charset.Charset;
 import java.util.concurrent.ExecutionException;
@@ -97,10 +86,6 @@ public class CameraActivity extends AppCompatActivity {
         prefs = PreferenceManager.getDefaultSharedPreferences(this);
         try {
             dbr = new BarcodeReader("t0077xQAAAEoQXMjVnF7S9ar4W6em9rhE6UN4uhNa+YU3O8VoTOiYEG2LOvx/G5HZYmRRsWXXHDMr+z0wUHfFh1aBqBJJZ3z1KUd/ACB1Kag=");
-            PublicRuntimeSettings rs = dbr.getRuntimeSettings();
-            rs.intermediateResultSavingMode= EnumIntermediateResultSavingMode.IRSM_MEMORY;
-            rs.intermediateResultTypes= EnumIntermediateResultType.IRT_ORIGINAL_IMAGE;
-            dbr.updateRuntimeSettings(rs);
         } catch (BarcodeReaderException e) {
             e.printStackTrace();
         }
@@ -334,27 +319,6 @@ public class CameraActivity extends AppCompatActivity {
             outStream2.write(result.getBytes(Charset.defaultCharset()));
             outStream2.close();
         }
-    }
-
-
-    //use YuvToRgbConverter instead
-    private Bitmap imageProxyToBitmap(byte[] bytes,int[] strides,int width, int height) throws IOException {
-        @SuppressLint("UnsafeExperimentalUsageError")
-        YuvImage yuvImage = new YuvImage(bytes, ImageFormat.NV21, width, height, strides);
-        ByteArrayOutputStream out = new ByteArrayOutputStream();
-        yuvImage.compressToJpeg(new Rect(0, 0, yuvImage.getWidth(), yuvImage.getHeight()), 75, out);
-        //saveImage(out);
-        byte[] imageBytes = out.toByteArray();
-        return BitmapFactory.decodeByteArray(imageBytes, 0, imageBytes.length);
-    }
-
-    private void saveImage(ByteArrayOutputStream out) throws IOException {
-        File path = this.getExternalFilesDir(null);
-        File file = new File(path, "test.jpg");
-        Log.d("DBR", file.getAbsolutePath());
-        FileOutputStream outStream = new FileOutputStream(file);
-        outStream.write(out.toByteArray());
-        outStream.close();
     }
 
     private class ImageData{
