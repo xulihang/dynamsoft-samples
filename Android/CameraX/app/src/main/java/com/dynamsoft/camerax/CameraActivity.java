@@ -23,8 +23,11 @@ import android.content.Intent;
 import android.content.SharedPreferences;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
+import android.graphics.Canvas;
+import android.graphics.Color;
 import android.graphics.ImageFormat;
 import android.graphics.Matrix;
+import android.graphics.Paint;
 import android.graphics.Rect;
 import android.graphics.YuvImage;
 import android.media.Image;
@@ -49,6 +52,7 @@ import com.dynamsoft.dbr.BarcodeReaderException;
 import com.dynamsoft.dbr.EnumImagePixelFormat;
 import com.dynamsoft.dbr.EnumIntermediateResultSavingMode;
 import com.dynamsoft.dbr.EnumIntermediateResultType;
+import com.dynamsoft.dbr.Point;
 import com.dynamsoft.dbr.PublicRuntimeSettings;
 import com.dynamsoft.dbr.TextResult;
 import com.google.common.util.concurrent.ListenableFuture;
@@ -170,13 +174,10 @@ public class CameraActivity extends AppCompatActivity {
                     e.printStackTrace();
                 }
                 if (results.length>0){
-                    Matrix m = new Matrix();
-                    m.postRotate(camera.getCameraInfo().getSensorRotationDegrees());
                     YuvToRgbConverter converter = new YuvToRgbConverter(CameraActivity.this);
                     Bitmap bitmap = Bitmap.createBitmap(image.getWidth(),image.getHeight(), Bitmap.Config.ARGB_8888);
                     converter.yuvToRgb(image.getImage(),bitmap);
-                    Bitmap bitmapRotated = Bitmap.createBitmap(bitmap,0,0,bitmap.getWidth(),bitmap.getHeight(),m,false);
-                    showResult(bitmapRotated,results);
+                    showResult(bitmap,results);
                 } else{
                     showResult(null,results);
                 }
@@ -204,7 +205,7 @@ public class CameraActivity extends AppCompatActivity {
             @Override
             public void run() {
                 if (results.length > 0) {
-
+                    overlay(results,bitmap);
                     String resultContent = "Found " + results.length + " barcode(s):\n";
                     for (int i = 0; i < results.length; i++) {
                         resultContent += results[i].barcodeText + "\n";
@@ -213,16 +214,16 @@ public class CameraActivity extends AppCompatActivity {
                     textView.setText(resultContent);
                     Boolean continuous = prefs.getBoolean("continuous",false);
                     Boolean record_history = prefs.getBoolean("record_history",false);
+
                     if (record_history){
                         try {
-                            saveRecord(resultContent,bitmap);
+                            saveRecord(resultContent,rotatedBitmap(bitmap));
                         } catch (IOException e) {
                             e.printStackTrace();
                         }
                     }
                     if (continuous==false){
-                        imageView.setImageBitmap(bitmap);
-
+                        imageView.setImageBitmap(rotatedBitmap(bitmap));
                         imageView.setVisibility(View.VISIBLE);
                     }else{
                         imageView.setVisibility(View.INVISIBLE);
@@ -234,6 +235,27 @@ public class CameraActivity extends AppCompatActivity {
             }
         });
 
+    }
+
+    private Bitmap rotatedBitmap(Bitmap bitmap){
+        Matrix m = new Matrix();
+        m.postRotate(camera.getCameraInfo().getSensorRotationDegrees());
+        Bitmap bitmapRotated = Bitmap.createBitmap(bitmap,0,0,bitmap.getWidth(),bitmap.getHeight(),m,false);
+        return bitmapRotated;
+    }
+
+    private void overlay(TextResult[] results,Bitmap bitmap) {
+        Canvas c = new Canvas(bitmap);
+        Paint p = new Paint();
+        p.setColor(Color.RED);
+        for (int i=0;i<results.length;i++){
+            TextResult result = results[i];
+            Point[] points=result.localizationResult.resultPoints;
+            c.drawLine(points[0].x,points[0].y,points[1].x,points[1].y,p);
+            c.drawLine(points[1].x,points[1].y,points[2].x,points[2].y,p);
+            c.drawLine(points[2].x,points[2].y,points[3].x,points[3].y,p);
+            c.drawLine(points[3].x,points[3].y,points[0].x,points[0].y,p);
+        }
     }
 
     private void saveRecord(String result,Bitmap image) throws IOException {
