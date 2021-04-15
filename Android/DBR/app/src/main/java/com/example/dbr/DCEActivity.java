@@ -18,6 +18,7 @@ import com.dynamsoft.dce.CameraState;
 import com.dynamsoft.dce.CameraView;
 import com.dynamsoft.dce.Frame;
 import com.dynamsoft.dce.HardwareUtil;
+import com.dynamsoft.dce.Resolution;
 import com.google.android.material.floatingactionbutton.FloatingActionButton;
 import com.google.android.material.snackbar.Snackbar;
 
@@ -56,18 +57,36 @@ public class DCEActivity extends AppCompatActivity {
         mCamera.addCameraListener(new CameraListener() {
             @Override
             public void onPreviewOriginalFrame(Frame frame) {
-                //Log.d("DBR", "original");
+                Log.d("DBR", "original");
             }
             @Override
             public void onPreviewFilterFrame(Frame frame) {
-                //Log.d("DBR", "filter");
+                Log.d("DBR", "filter");
             }
 
             @Override
             public void onPreviewFastFrame(Frame frame) {
-                //Log.d("DBR", "fastframe");
-                DecodingThread decodeThread= new DecodingThread(frame);
-                decodeThread.run();
+                Log.d("DBR", "fastframe");
+                TextResult[] results = new TextResult[0];
+                try {
+                    results = dbr.decodeBuffer(frame.getData(),frame.getWidth(),frame.getHeight(),frame.getStrides()[0],frame.getFormat(),"");
+                } catch (BarcodeReaderException e) {
+                    e.printStackTrace();
+                }
+
+                if (results.length > 0) {
+                    String resultContent = "Found " + results.length + " barcode(s):\n";
+                    for (int i = 0; i < results.length; i++) {
+                        resultContent += results[i].barcodeText + "\n";
+                    }
+                    Log.d("DBR", resultContent);
+                    Intent data = new Intent();
+                    data.putExtra("TextResult",resultContent);
+                    setResult(20, data);
+                    finish();
+                } else {
+                    Log.d("DBR", "No barcode found");
+                }
             }
         });
         boolean ifNeedFilter = true;
@@ -83,43 +102,14 @@ public class DCEActivity extends AppCompatActivity {
             ifNeedAutoFocus = false;
         }
         mCamera.setForceAutoFocus(ifNeedAutoFocus);
-        mCamera.setUseFrameFilter(ifNeedFilter);
+        mCamera.setResolution(Resolution.RESOLUTION_720P);
+        mCamera.setUseFrameFilter(false);
+        mCamera.setFastMode(false);
         //Start Scan
         try {
             mCamera.startScanning();
         } catch (CameraEnhancerException e) {
             e.printStackTrace();
-        }
-    }
-
-    class DecodingThread extends Thread {
-        private Frame mFrame;
-        public DecodingThread (Frame frame)
-        {
-            this.mFrame = frame;
-        }
-        @Override
-        public void run() {
-            TextResult[] results = new TextResult[0];
-            try {
-                results = dbr.decodeBuffer(mFrame.getData(),mFrame.getWidth(),mFrame.getHeight(),mFrame.getStrides()[0],mFrame.getFormat(),"");
-            } catch (BarcodeReaderException e) {
-                e.printStackTrace();
-            }
-
-            if (results.length > 0) {
-                String resultContent = "Found " + results.length + " barcode(s):\n";
-                for (int i = 0; i < results.length; i++) {
-                    resultContent += results[i].barcodeText + "\n";
-                }
-                Log.d("DBR", resultContent);
-                Intent data = new Intent();
-                data.putExtra("TextResult",resultContent);
-                setResult(20, data);
-                finish();
-            } else {
-                Log.d("DBR", "No barcode found");
-            }
         }
     }
 }

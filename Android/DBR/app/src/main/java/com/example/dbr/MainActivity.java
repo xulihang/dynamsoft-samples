@@ -25,11 +25,13 @@ import android.view.View;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import java.sql.Date;
+
 public class MainActivity extends AppCompatActivity {
 
     private static final int PICKFILE_REQUEST_CODE = 100;
     private static final int LIVE_SCAN_CODE = 20;
-
+    private long startTime;
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -88,13 +90,10 @@ public class MainActivity extends AppCompatActivity {
             }
             return;
         } else if (requestCode == LIVE_SCAN_CODE){
-            if (data.getBooleanExtra("needRestart",false)==true){
-                startLiveScan();
-            }else{
-                Toast.makeText(this, data.getStringExtra("TextResult") , Toast.LENGTH_SHORT).show();
-                TextView resultTextView=findViewById(R.id.resultTextView);
-                resultTextView.setText(data.getStringExtra("TextResult"));
-            }
+            Long duration= new Date(System.currentTimeMillis()).getTime() - startTime;
+            Toast.makeText(this, "Time: "+duration , Toast.LENGTH_SHORT).show();
+            TextView resultTextView=findViewById(R.id.resultTextView);
+            resultTextView.setText(data.getStringExtra("TextResult"));
         }
         super.onActivityResult(requestCode, resultCode, data);
     }
@@ -153,6 +152,7 @@ public class MainActivity extends AppCompatActivity {
 
     private void startLiveScan(){
         if (checkCameraPermission()==true){
+            startTime= new Date(System.currentTimeMillis()).getTime();
             Intent intent = new Intent(this , CameraActivity.class);
             startActivityForResult(intent,LIVE_SCAN_CODE);
         }
@@ -161,6 +161,7 @@ public class MainActivity extends AppCompatActivity {
 
     private void startLiveScanDCE(){
         if (checkCameraPermission()==true){
+            startTime= new Date(System.currentTimeMillis()).getTime();
             Intent intent = new Intent(this , DCEActivity.class);
             startActivityForResult(intent,LIVE_SCAN_CODE);
         }
