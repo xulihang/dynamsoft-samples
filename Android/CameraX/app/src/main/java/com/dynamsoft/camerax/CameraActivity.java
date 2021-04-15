@@ -147,8 +147,17 @@ public class CameraActivity extends AppCompatActivity {
 
     @SuppressLint("UnsafeExperimentalUsageError")
     private void bindImageAnalysis(@NonNull ProcessCameraProvider cameraProvider) {
+        Size resolution = new Size(720, 1280);
+        Display d = getDisplay();
+        if (d.getRotation()!=Surface.ROTATION_0){
+            resolution = new Size(1280, 720);
+        }
+
+        Preview preview = new Preview.Builder().setTargetResolution(resolution).build();
+
         ImageAnalysis imageAnalysis =
-                new ImageAnalysis.Builder().setTargetResolution(new Size(1280, 720))
+                new ImageAnalysis.Builder()
+                        .setTargetResolution(resolution)
                         .setBackpressureStrategy(ImageAnalysis.STRATEGY_KEEP_ONLY_LATEST).build();
         imageAnalysis.setAnalyzer(exec, new ImageAnalysis.Analyzer() {
             @RequiresApi(api = Build.VERSION_CODES.O)
@@ -187,7 +196,7 @@ public class CameraActivity extends AppCompatActivity {
             }
         });
 
-        Preview preview = new Preview.Builder().build();
+
         CameraSelector cameraSelector = new CameraSelector.Builder()
                 .requireLensFacing(CameraSelector.LENS_FACING_BACK).build();
         preview.setSurfaceProvider(previewView.createSurfaceProvider());
