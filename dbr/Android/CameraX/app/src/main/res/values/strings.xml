@@ -8,6 +8,7 @@
 
     <!-- Camera Preferences -->
     <string name="continuous_scan">Continuous Scan</string>
+    <string name="beep">Beep</string>
 
     <!-- History Preferences -->
     <string name="record_history">Record History</string>

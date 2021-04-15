@@ -32,6 +32,7 @@ import android.graphics.Paint;
 import android.graphics.Rect;
 import android.graphics.YuvImage;
 import android.media.Image;
+import android.media.MediaPlayer;
 import android.os.Build;
 import android.os.Bundle;
 import android.util.Log;
@@ -77,12 +78,14 @@ public class CameraActivity extends AppCompatActivity {
     private Camera camera;
     private SharedPreferences prefs;
     private Long TouchDownTime;
+    private MediaPlayer mp;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_camera);
         exec = Executors.newSingleThreadExecutor();
+        mp = MediaPlayer.create(getApplicationContext(), R.raw.beepsound);
         prefs = PreferenceManager.getDefaultSharedPreferences(this);
         try {
             dbr = new BarcodeReader("t0077xQAAAEoQXMjVnF7S9ar4W6em9rhE6UN4uhNa+YU3O8VoTOiYEG2LOvx/G5HZYmRRsWXXHDMr+z0wUHfFh1aBqBJJZ3z1KUd/ACB1Kag=");
@@ -257,7 +260,10 @@ public class CameraActivity extends AppCompatActivity {
                     textView.setText(resultContent);
                     Boolean continuous = prefs.getBoolean("continuous",false);
                     Boolean record_history = prefs.getBoolean("record_history",false);
-
+                    Boolean beep = prefs.getBoolean("beep",false);
+                    if (beep){
+                        playBeepSound();
+                    }
                     if (record_history){
                         try {
                             saveRecord(resultContent,rotatedBitmap(bitmap,rotationDegrees ));
@@ -278,6 +284,10 @@ public class CameraActivity extends AppCompatActivity {
             }
         });
 
+    }
+
+    private void playBeepSound(){
+        mp.start();
     }
 
     private Bitmap rotatedBitmap(Bitmap bitmap,int rotationDegrees){

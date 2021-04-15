@@ -5,6 +5,9 @@
         <SwitchPreferenceCompat
             app:key="continuous"
             app:title="@string/continuous_scan"/>
+        <SwitchPreferenceCompat
+            app:key="beep"
+            app:title="@string/beep"/>
 
     </PreferenceCategory>
 
