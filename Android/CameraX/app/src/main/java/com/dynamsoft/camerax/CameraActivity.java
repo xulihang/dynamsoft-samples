@@ -40,6 +40,7 @@ import android.media.Image;
 import android.os.Build;
 import android.os.Bundle;
 import android.os.Environment;
+import android.text.method.Touch;
 import android.util.Log;
 import android.util.Rational;
 import android.util.Size;
@@ -86,6 +87,7 @@ public class CameraActivity extends AppCompatActivity {
     private ExecutorService exec;
     private Camera camera;
     private SharedPreferences prefs;
+    private Long TouchDownTime;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -220,20 +222,34 @@ public class CameraActivity extends AppCompatActivity {
     @Override
     public boolean onTouchEvent(MotionEvent event) {
         // TODO Auto-generated method stub
-        focus(previewView.getWidth(),previewView.getHeight(),event.getX(),event.getY());
+        if (event.getAction() == MotionEvent.ACTION_UP){
+            Long heldTime = System.currentTimeMillis()-TouchDownTime;
+
+            if (heldTime>600){ //long press
+                focus(previewView.getWidth(),previewView.getHeight(),event.getX(),event.getY(),false);
+            } else{
+                Toast.makeText(this, "Refocus after 5 seconds.", Toast.LENGTH_SHORT).show();
+                focus(previewView.getWidth(),previewView.getHeight(),event.getX(),event.getY(),true);
+            }
+
+        } else if (event.getAction() == MotionEvent.ACTION_DOWN){
+            TouchDownTime=System.currentTimeMillis();
+        }
         return super.onTouchEvent(event);
     }
 
-    private void focus(float width, float height, float x, float y){
+    private void focus(float width, float height, float x, float y, boolean autoCancel){
         CameraControl cameraControl=camera.getCameraControl();
         MeteringPointFactory factory = new SurfaceOrientedMeteringPointFactory(width, height);
         MeteringPoint point = factory.createPoint(x, y);
-        FocusMeteringAction action = new FocusMeteringAction.Builder(point, FocusMeteringAction.FLAG_AF)
-                //.addPoint(point2, FocusMeteringAction.FLAG_AE) // could have many
-                // auto calling cancelFocusAndMetering in 5 seconds
-                .setAutoCancelDuration(5, TimeUnit.SECONDS)
-                .build();
-
+        FocusMeteringAction.Builder builder = new FocusMeteringAction.Builder(point, FocusMeteringAction.FLAG_AF);
+        if (autoCancel){
+            // auto calling cancelFocusAndMetering in 5 seconds
+            builder.setAutoCancelDuration(5, TimeUnit.SECONDS);
+        }else{
+            builder.disableAutoCancel();
+        }
+        FocusMeteringAction action =builder.build();
         ListenableFuture future = cameraControl.startFocusAndMetering(action);
     }
 
