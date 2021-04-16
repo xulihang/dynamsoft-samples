@@ -3,6 +3,8 @@ package com.dynamsoft.camerax;
 import androidx.annotation.NonNull;
 import androidx.annotation.RequiresApi;
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.camera.camera2.Camera2Config;
+import androidx.camera.camera2.interop.Camera2Interop;
 import androidx.camera.core.Camera;
 import androidx.camera.core.CameraControl;
 import androidx.camera.core.CameraSelector;
@@ -33,11 +35,13 @@ import android.graphics.Matrix;
 import android.graphics.Paint;
 import android.graphics.Rect;
 import android.graphics.YuvImage;
+import android.hardware.camera2.CaptureRequest;
 import android.media.Image;
 import android.media.MediaPlayer;
 import android.os.Build;
 import android.os.Bundle;
 import android.util.Log;
+import android.util.Range;
 import android.util.Size;
 import android.view.Display;
 import android.view.MotionEvent;
@@ -189,12 +193,17 @@ public class CameraActivity extends AppCompatActivity {
             resolution = new Size(1280, 720);
         }
 
-        Preview preview = new Preview.Builder().setTargetResolution(resolution).build();
+        Preview.Builder previewBuilder = new Preview.Builder();
+        previewBuilder.setTargetResolution(resolution);
+        Preview preview = previewBuilder.build();
 
-        ImageAnalysis imageAnalysis =
-                new ImageAnalysis.Builder()
-                        .setTargetResolution(resolution)
-                        .setBackpressureStrategy(ImageAnalysis.STRATEGY_KEEP_ONLY_LATEST).build();
+        ImageAnalysis.Builder imageAnalysisBuilder=new ImageAnalysis.Builder();
+        imageAnalysisBuilder.setTargetResolution(resolution)
+                            .setBackpressureStrategy(ImageAnalysis.STRATEGY_KEEP_ONLY_LATEST);
+        Camera2Interop.Extender ext = new Camera2Interop.Extender<>(imageAnalysisBuilder);
+        ext.setCaptureRequestOption(CaptureRequest.CONTROL_AE_TARGET_FPS_RANGE, new Range<Integer>(60, 60));
+        ImageAnalysis imageAnalysis = imageAnalysisBuilder.build();
+
         imageAnalysis.setAnalyzer(exec, new ImageAnalysis.Analyzer() {
             @RequiresApi(api = Build.VERSION_CODES.O)
             @Override
