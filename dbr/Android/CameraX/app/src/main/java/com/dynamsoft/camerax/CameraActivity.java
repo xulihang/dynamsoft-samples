@@ -73,6 +73,7 @@ public class CameraActivity extends AppCompatActivity {
     private ListenableFuture<ProcessCameraProvider> cameraProviderFuture;
     private TextView textView;
     private ImageView imageView;
+    private ImageView viewFinder;
     private BarcodeReader dbr;
     private ExecutorService exec;
     private Camera camera;
@@ -87,16 +88,18 @@ public class CameraActivity extends AppCompatActivity {
         exec = Executors.newSingleThreadExecutor();
         mp = MediaPlayer.create(getApplicationContext(), R.raw.beepsound);
         prefs = PreferenceManager.getDefaultSharedPreferences(this);
-        try {
-            dbr = new BarcodeReader("t0077xQAAAEoQXMjVnF7S9ar4W6em9rhE6UN4uhNa+YU3O8VoTOiYEG2LOvx/G5HZYmRRsWXXHDMr+z0wUHfFh1aBqBJJZ3z1KUd/ACB1Kag=");
-        } catch (BarcodeReaderException e) {
-            e.printStackTrace();
-        }
         previewView = findViewById(R.id.previewView);
         cameraProviderFuture = ProcessCameraProvider.getInstance(this);
         textView = findViewById(R.id.resultView);
         imageView = findViewById(R.id.imageView);
         imageView.setVisibility(View.INVISIBLE);
+        viewFinder = findViewById(R.id.viewFinder);
+        try {
+            dbr = new BarcodeReader("t0077xQAAAEoQXMjVnF7S9ar4W6em9rhE6UN4uhNa+YU3O8VoTOiYEG2LOvx/G5HZYmRRsWXXHDMr+z0wUHfFh1aBqBJJZ3z1KUd/ACB1Kag=");
+        } catch (BarcodeReaderException e) {
+            e.printStackTrace();
+        }
+
         SeekBar zoomRatioSeekBar = findViewById(R.id.zoomRatioSeekBar);
         zoomRatioSeekBar.setOnSeekBarChangeListener(new SeekBar.OnSeekBarChangeListener() {
             @Override
@@ -138,9 +141,54 @@ public class CameraActivity extends AppCompatActivity {
 
     }
 
+    public void onWindowFocusChanged(boolean hasWindowFocus) {
+        super.onWindowFocusChanged(hasWindowFocus);
+        if(hasWindowFocus){
+            if (prefs.getBoolean("enable_viewfinder",false)==false){
+                viewFinder.setVisibility(View.INVISIBLE);
+            }else{
+                drawViewFinder();
+                try {
+                    PublicRuntimeSettings rs = dbr.getRuntimeSettings();
+                    int left= (int) (((double) viewFinder.getLeft()/previewView.getWidth()) *100);
+                    int top= (int) (((double) viewFinder.getTop()/previewView.getHeight()) *100);
+                    int right= (int) (((double) viewFinder.getRight()/previewView.getWidth()) *100);
+                    int bottom= (int) (((double) viewFinder.getBottom()/previewView.getHeight()) *100);
+                    Log.d("DBR", "regions");
+                    Log.d("DBR", String.valueOf(left));
+                    Log.d("DBR", String.valueOf(top));
+                    Log.d("DBR", String.valueOf(right));
+                    Log.d("DBR", String.valueOf(bottom));
+                    rs.region.regionLeft=left;
+                    rs.region.regionTop=top;
+                    rs.region.regionRight=right;
+                    rs.region.regionBottom=bottom;
+
+                    rs.region.regionMeasuredByPercentage=1;
+                    dbr.updateRuntimeSettings(rs);
+                } catch (BarcodeReaderException e) {
+                    e.printStackTrace();
+                }
+            }
+        }
+    }
+
     public void torchToggled(View view){
         ToggleButton btn= (ToggleButton) view;
         camera.getCameraControl().enableTorch(btn.isChecked());
+    }
+
+    private void drawViewFinder(){
+        int width=viewFinder.getWidth();
+        int height=viewFinder.getHeight();
+        Bitmap bm= Bitmap.createBitmap(width,height, Bitmap.Config.ARGB_8888);
+        Canvas c = new Canvas(bm);
+        Paint p = new Paint();
+        p.setStrokeWidth(2);
+        p.setColor(Color.GRAY);
+        p.setStyle(Paint.Style.STROKE);
+        c.drawRoundRect(0,0,width,height,10,10,p);
+        viewFinder.setImageBitmap(bm);
     }
 
     @SuppressLint("UnsafeExperimentalUsageError")
@@ -181,15 +229,16 @@ public class CameraActivity extends AppCompatActivity {
                 } catch (BarcodeReaderException e) {
                     e.printStackTrace();
                 }
-                if (results.length>0){
-                    YuvToRgbConverter converter = new YuvToRgbConverter(CameraActivity.this);
-                    Bitmap bitmap = Bitmap.createBitmap(image.getWidth(),image.getHeight(), Bitmap.Config.ARGB_8888);
-                    converter.yuvToRgb(image.getImage(),bitmap);
-                    showResult(bitmap,results,rotationDegrees );
-                } else{
-                    showResult(results);
+                if (imageView.getVisibility()==View.INVISIBLE){
+                    if (results.length>0){
+                        YuvToRgbConverter converter = new YuvToRgbConverter(CameraActivity.this);
+                        Bitmap bitmap = Bitmap.createBitmap(image.getWidth(),image.getHeight(), Bitmap.Config.ARGB_8888);
+                        converter.yuvToRgb(image.getImage(),bitmap);
+                        showResult(bitmap,results,rotationDegrees );
+                    } else{
+                        showResult(results);
+                    }
                 }
-
                 image.close();
             }
         });
@@ -251,6 +300,9 @@ public class CameraActivity extends AppCompatActivity {
             @Override
             public void run() {
                 if (results.length > 0) {
+                    Boolean continuous = prefs.getBoolean("continuous",false);
+                    Boolean record_history = prefs.getBoolean("record_history",false);
+                    Boolean beep = prefs.getBoolean("beep",false);
                     overlay(results,bitmap);
                     String resultContent = "Found " + results.length + " barcode(s):\n";
                     for (int i = 0; i < results.length; i++) {
@@ -258,9 +310,6 @@ public class CameraActivity extends AppCompatActivity {
                     }
                     Log.d("DBR", resultContent);
                     textView.setText(resultContent);
-                    Boolean continuous = prefs.getBoolean("continuous",false);
-                    Boolean record_history = prefs.getBoolean("record_history",false);
-                    Boolean beep = prefs.getBoolean("beep",false);
                     if (beep){
                         playBeepSound();
                     }

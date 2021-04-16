@@ -8,6 +8,7 @@
 
     <!-- Camera Preferences -->
     <string name="continuous_scan">Continuous Scan</string>
+    <string name="enable_viewfinder">Enable Viewfinder</string>
     <string name="beep">Beep</string>
 
     <!-- History Preferences -->
