@@ -21,6 +21,8 @@ import androidx.lifecycle.LifecycleOwner;
 import androidx.preference.PreferenceManager;
 
 import android.annotation.SuppressLint;
+import android.content.ClipData;
+import android.content.ClipboardManager;
 import android.content.SharedPreferences;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
@@ -163,7 +165,6 @@ public class CameraActivity extends AppCompatActivity {
                     rs.region.regionTop=top;
                     rs.region.regionRight=right;
                     rs.region.regionBottom=bottom;
-
                     rs.region.regionMeasuredByPercentage=1;
                     dbr.updateRuntimeSettings(rs);
                 } catch (BarcodeReaderException e) {
@@ -176,6 +177,16 @@ public class CameraActivity extends AppCompatActivity {
     public void torchToggled(View view){
         ToggleButton btn= (ToggleButton) view;
         camera.getCameraControl().enableTorch(btn.isChecked());
+    }
+
+    public void result_Clicked(View view){
+        TextView tv = (TextView) view;
+        ClipboardManager myClipboard;
+        myClipboard = (ClipboardManager)getSystemService(CLIPBOARD_SERVICE);
+        ClipData myClip;
+        myClip = ClipData.newPlainText("text", tv.getText());
+        myClipboard.setPrimaryClip(myClip);
+        Toast.makeText(this, "Copied to clipboard", Toast.LENGTH_SHORT).show();
     }
 
     private void drawViewFinder(){

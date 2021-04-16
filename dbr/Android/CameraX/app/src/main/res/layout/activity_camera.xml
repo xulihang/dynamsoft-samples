@@ -83,6 +83,7 @@
             android:layout_marginTop="115dp"
             android:background="#80000000"
             android:gravity="center_horizontal|top"
+            android:onClick="result_Clicked"
             android:textColor="#9999ff"
             android:textSize="12sp"
             app:layout_constraintBottom_toBottomOf="parent"
