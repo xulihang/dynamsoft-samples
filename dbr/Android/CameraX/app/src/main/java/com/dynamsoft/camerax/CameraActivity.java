@@ -140,7 +140,6 @@ public class CameraActivity extends AppCompatActivity {
         }else{
             super.onBackPressed();
         }
-
     }
 
     public void onWindowFocusChanged(boolean hasWindowFocus) {
@@ -150,26 +149,6 @@ public class CameraActivity extends AppCompatActivity {
                 viewFinder.setVisibility(View.INVISIBLE);
             }else{
                 drawViewFinder();
-                try {
-                    PublicRuntimeSettings rs = dbr.getRuntimeSettings();
-                    int left= (int) (((double) viewFinder.getLeft()/previewView.getWidth()) *100);
-                    int top= (int) (((double) viewFinder.getTop()/previewView.getHeight()) *100);
-                    int right= (int) (((double) viewFinder.getRight()/previewView.getWidth()) *100);
-                    int bottom= (int) (((double) viewFinder.getBottom()/previewView.getHeight()) *100);
-                    Log.d("DBR", "regions");
-                    Log.d("DBR", String.valueOf(left));
-                    Log.d("DBR", String.valueOf(top));
-                    Log.d("DBR", String.valueOf(right));
-                    Log.d("DBR", String.valueOf(bottom));
-                    rs.region.regionLeft=left;
-                    rs.region.regionTop=top;
-                    rs.region.regionRight=right;
-                    rs.region.regionBottom=bottom;
-                    rs.region.regionMeasuredByPercentage=1;
-                    dbr.updateRuntimeSettings(rs);
-                } catch (BarcodeReaderException e) {
-                    e.printStackTrace();
-                }
             }
         }
     }
@@ -224,30 +203,39 @@ public class CameraActivity extends AppCompatActivity {
                     image.close();
                     return;
                 }
-                Image im = image.getImage();
-                ByteBuffer buffer = image.getPlanes()[0].getBuffer();
-                int nRowStride = image.getPlanes()[0].getRowStride();
-                int nPixelStride = image.getPlanes()[0].getPixelStride();
-                int length= buffer.remaining();
-                byte[] bytes= new byte[length];
-                buffer.get(bytes);
-                int rotationDegrees =image.getImageInfo().getRotationDegrees();
 
-                ImageData imageData= new ImageData(bytes,image.getWidth(), image.getHeight(),nRowStride *nPixelStride);
-                TextResult[] results = new TextResult[0];
-                try {
-                    results = dbr.decodeBuffer(imageData.mBytes,imageData.mWidth,imageData.mHeight, imageData.mStride, EnumImagePixelFormat.IPF_NV21,"");
-                } catch (BarcodeReaderException e) {
-                    e.printStackTrace();
+                int rotationDegrees =image.getImageInfo().getRotationDegrees();
+                Image im = image.getImage();
+                Bitmap bitmap = Bitmap.createBitmap(image.getWidth(),image.getHeight(), Bitmap.Config.ARGB_8888);
+                TextResult[] results = null;
+                Boolean viewFinderEnabled = (viewFinder.getVisibility()==View.VISIBLE);
+                if (viewFinderEnabled){
+                    YuvToRgbConverter converter = new YuvToRgbConverter(CameraActivity.this);
+                    converter.yuvToRgb(image.getImage(),bitmap);
+                    bitmap=rotatedBitmap(bitmap,rotationDegrees);
+                    rotationDegrees=0;
+                    bitmap=croppedBitmap(bitmap);
+                    results = decodeBitmap(bitmap);
+                } else{
+                    ByteBuffer buffer = image.getPlanes()[0].getBuffer();
+                    int nRowStride = image.getPlanes()[0].getRowStride();
+                    int nPixelStride = image.getPlanes()[0].getPixelStride();
+                    int length= buffer.remaining();
+                    byte[] bytes= new byte[length];
+                    buffer.get(bytes);
+                    ImageData imageData= new ImageData(bytes,image.getWidth(), image.getHeight(),nRowStride *nPixelStride);
+                    results = decodeBuffer(imageData);
                 }
+
                 if (imageView.getVisibility()==View.INVISIBLE){
                     if (results.length>0){
-                        YuvToRgbConverter converter = new YuvToRgbConverter(CameraActivity.this);
-                        Bitmap bitmap = Bitmap.createBitmap(image.getWidth(),image.getHeight(), Bitmap.Config.ARGB_8888);
-                        converter.yuvToRgb(image.getImage(),bitmap);
-                        showResult(bitmap,results,rotationDegrees );
+                        if (viewFinderEnabled==false){
+                            YuvToRgbConverter converter = new YuvToRgbConverter(CameraActivity.this);
+                            converter.yuvToRgb(image.getImage(),bitmap);
+                        }
+                        updateResult(bitmap,results,rotationDegrees );
                     } else{
-                        showResult(results);
+                        updateResult(results);
                     }
                 }
                 image.close();
@@ -263,9 +251,45 @@ public class CameraActivity extends AppCompatActivity {
                 .addUseCase(preview)
                 .addUseCase(imageAnalysis)
                 .build();
-
         camera=cameraProvider.bindToLifecycle((LifecycleOwner)this, cameraSelector, useCaseGroup);
     }
+
+    private TextResult[] decodeBuffer(ImageData imageData){
+        TextResult[] results = new TextResult[0];
+        try {
+            results = dbr.decodeBuffer(imageData.mBytes,imageData.mWidth,imageData.mHeight, imageData.mStride, EnumImagePixelFormat.IPF_NV21,"");
+        } catch (BarcodeReaderException e) {
+            e.printStackTrace();
+        }
+        return results;
+    }
+
+    private TextResult[] decodeBitmap(Bitmap bm){
+        TextResult[] results = new TextResult[0];
+        try {
+            results = dbr.decodeBufferedImage(bm,"");
+        } catch (BarcodeReaderException | IOException e) {
+            e.printStackTrace();
+        }
+        return results;
+    }
+
+    private Bitmap croppedBitmap(Bitmap bm){
+        int left= (int) (((double) viewFinder.getLeft()/previewView.getWidth()) * bm.getWidth());
+        int top= (int) (((double) viewFinder.getTop()/previewView.getHeight()) * bm.getHeight());
+        int width= (int) (((double) viewFinder.getWidth()/previewView.getWidth()) * bm.getWidth());
+        int height= (int) (((double) viewFinder.getHeight()/previewView.getHeight()) * bm.getHeight());
+        Bitmap cropped = Bitmap.createBitmap(bm,left,top,width,height);
+        return cropped;
+    }
+
+    private Bitmap rotatedBitmap(Bitmap bitmap,int rotationDegrees){
+        Matrix m = new Matrix();
+        m.postRotate(rotationDegrees);
+        Bitmap bitmapRotated = Bitmap.createBitmap(bitmap,0,0,bitmap.getWidth(),bitmap.getHeight(),m,false);
+        return bitmapRotated;
+    }
+
 
     @Override
     public boolean onTouchEvent(MotionEvent event) {
@@ -301,11 +325,11 @@ public class CameraActivity extends AppCompatActivity {
         ListenableFuture future = cameraControl.startFocusAndMetering(action);
     }
 
-    private void showResult(TextResult[] results){
-        showResult(null,results,0);
+    private void updateResult(TextResult[] results){
+        updateResult(null,results,0);
     }
 
-    private void showResult(Bitmap bitmap,TextResult[] results,int rotationDegrees ){
+    private void updateResult(Bitmap bitmap,TextResult[] results,int rotationDegrees ){
         this.runOnUiThread(new Runnable() {
             @SuppressLint("UnsafeExperimentalUsageError")
             @Override
@@ -348,13 +372,6 @@ public class CameraActivity extends AppCompatActivity {
 
     private void playBeepSound(){
         mp.start();
-    }
-
-    private Bitmap rotatedBitmap(Bitmap bitmap,int rotationDegrees){
-        Matrix m = new Matrix();
-        m.postRotate(rotationDegrees);
-        Bitmap bitmapRotated = Bitmap.createBitmap(bitmap,0,0,bitmap.getWidth(),bitmap.getHeight(),m,false);
-        return bitmapRotated;
     }
 
     private void overlay(TextResult[] results,Bitmap bitmap) {
