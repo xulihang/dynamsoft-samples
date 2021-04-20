@@ -137,21 +137,21 @@
 		isDesktopFunc().then(function(bDesktop){
 			isDesktop = bDesktop;
 			if (isDesktop==false) {
-			    Dynamsoft.DWT.UseLocalService = false;
+			    Dynamsoft.WebTwainEnv.UseLocalService = false;
 				document.getElementById("desktopscan").style.display="none";
 			}
 		});
 		
         var console = window['console'] ? window['console'] : { 'log': function () { } };
 
-        Dynamsoft.DWT.RegisterEvent('OnWebTwainReady', Dynamsoft_OnReady); // Register OnWebTwainReady event. This event fires as soon as Dynamic Web TWAIN is initialized and ready to be used
+        Dynamsoft.WebTwainEnv.RegisterEvent('OnWebTwainReady', Dynamsoft_OnReady); // Register OnWebTwainReady event. This event fires as soon as Dynamic Web TWAIN is initialized and ready to be used
 
         var DWObject;
 		var DWObjectRemote;
 		switchTab(null, 'camera')
 		
         function Dynamsoft_OnReady() {
-			DWObject = Dynamsoft.DWT.GetWebTwain('dwtcontrolContainer'); // Get the Dynamic Web TWAIN object that is embeded in the div with id 'dwtcontrolContainer'
+			DWObject = Dynamsoft.WebTwainEnv.GetWebTwain('dwtcontrolContainer'); // Get the Dynamic Web TWAIN object that is embeded in the div with id 'dwtcontrolContainer'
 			initRemoteDWT(ip.value);
             if (DWObject) {
 			    DWObject.Viewer.width="100%";
@@ -186,7 +186,7 @@
 			  PortSSL: '18623', 
 			  UseLocalService:'true'
 		    };
-           Dynamsoft.DWT.CreateDWTObjectEx(
+           Dynamsoft.WebTwainEnv.CreateDWTObjectEx(
 			  dwtConfig, 
 			  function (dwt) {
 				  DWObjectRemote = dwt;
@@ -221,7 +221,7 @@
 			dwt.RegisterEvent('OnPostTransferAsync', function(outputInfo){
 			  dwt.ConvertToBlob(
 				  [dwt.ImageIDToIndex(outputInfo.imageId)], 
-				  Dynamsoft.DWT.EnumDWT_ImageType.IT_PNG, 
+				  Dynamsoft.EnumDWT_ImageType.IT_PNG, 
 				  function (result, indices, type) {
 					  DWObject.LoadImageFromBinary(
 						  result,         
@@ -297,11 +297,11 @@
 			var pixelType,feederEnabled,duplexEnabled,showUI,resolution;
 			//Pixel type
 			if (document.getElementById("BW").checked)
-				pixelType = Dynamsoft.DWT.EnumDWT_PixelType.TWPT_BW;
+				pixelType = EnumDWT_PixelType.TWPT_BW;
 			else if (document.getElementById("Gray").checked)
-				pixelType = Dynamsoft.DWT.EnumDWT_PixelType.TWPT_GRAY;
+				pixelType = EnumDWT_PixelType.TWPT_GRAY;
 			else if (document.getElementById("RGB").checked)
-				pixelType = Dynamsoft.DWT.EnumDWT_PixelType.TWPT_RGB;
+				pixelType = EnumDWT_PixelType.TWPT_RGB;
 			//If auto feeder
 			if (document.getElementById("ADF").checked)
 				feederEnabled = true;
@@ -391,8 +391,8 @@
 			DWObject.IfShowFileDialog = true;
 			// PDF Rasterizer Addon is used here to ensure PDF support
 			DWObject.Addon.PDF.SetResolution(200);
-			DWObject.Addon.PDF.SetConvertMode(Dynamsoft.DWT.EnumDWT_ConvertMode.CM_RENDERALL);
-			DWObject.LoadImageEx("", Dynamsoft.DWT.EnumDWT_ImageType.IT_ALL, OnSuccess, OnFailure);
+			DWObject.Addon.PDF.SetConvertMode(Dynamsoft.EnumDWT_ConvertMode.CM_RENDERALL);
+			DWObject.LoadImageEx("", Dynamsoft.EnumDWT_ImageType.IT_ALL, OnSuccess, OnFailure);
 		}
 
         function SaveWithFileDialog() {
