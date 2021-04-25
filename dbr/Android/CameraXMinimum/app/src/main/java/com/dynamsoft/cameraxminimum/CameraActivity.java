@@ -54,10 +54,20 @@ public class CameraActivity extends AppCompatActivity {
         resultView = findViewById(R.id.resultView);
         exec = Executors.newSingleThreadExecutor();
         try {
-            dbr = new BarcodeReader("t0077xQAAAEoQXMjVnF7S9ar4W6em9rhE6UN4uhNa+YU3O8VoTOiYEG2LOvx/G5HZYmRRsWXXHDMr+z0wUHfFh1aBqBJJZ3z1KUd/ACB1Kag=");
+            dbr = new BarcodeReader();
         } catch (BarcodeReaderException e) {
             e.printStackTrace();
         }
+        DMLTSConnectionParameters parameters = new DMLTSConnectionParameters();
+        parameters.organizationID = "200001";
+        dbr.initLicenseFromLTS(parameters, new DBRLTSLicenseVerificationListener() {
+            @Override
+            public void LTSLicenseVerificationCallback(boolean isSuccess, Exception error) {
+                if (!isSuccess) {
+                    error.printStackTrace();
+                }
+            }
+        });
         cameraProviderFuture = ProcessCameraProvider.getInstance(this);
         cameraProviderFuture.addListener(new Runnable() {
             @Override
