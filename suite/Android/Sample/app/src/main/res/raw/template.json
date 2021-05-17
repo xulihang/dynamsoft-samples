@@ -1,0 +1,92 @@
+{
+  "CharacterModelArray" : [
+    {
+      "DirectoryPath" : "",
+      "FilterFilePath" : "",
+      "Name" : "NumberLetter"
+    }
+  ],
+  "LabelRecognitionParameterArray" : [
+    {
+      "BinarizationModes" : [
+        {
+          "BlockSizeX" : 0,
+          "BlockSizeY" : 0,
+          "EnableFillBinaryVacancy" : 1,
+          "ImagePreprocessingModesIndex" : -1,
+          "LibraryFileName" : "",
+          "LibraryParameters" : "",
+          "Mode" : "DLR_BM_LOCAL_BLOCK",
+          "ThreshValueCoefficient" : 10
+        }
+      ],
+      "CharacterModelName" : "NumberLetter",
+      "GrayscaleTransformationModes" : [
+        {
+          "LibraryFileName" : "",
+          "LibraryParameters" : "",
+          "Mode" : "DLR_GTM_ORIGINAL"
+        }
+      ],
+      "ImagePreprocessingModes" : [
+        {
+          "LibraryFileName" : "",
+          "LibraryParameters" : "",
+          "Mode" : "DLR_IPM_GENERAL"
+        }
+      ],
+      "LetterHeightRange" : [ 1, 100, 1 ],
+      "LineStringRegExPattern" : "",
+      "LinesCount" : 100,
+      "MaxThreadCount" : 4,
+      "Name" : "P1",
+      "ReferenceRegionNameArray" : [ "defaultReferenceRegion" ],
+      "RegionPredetectionModes" : [
+        {
+          "LibraryFileName" : "",
+          "LibraryParameters" : "",
+          "MinImageDimension" : 262144,
+          "Mode" : "DLR_RPM_GENERAL",
+          "Sensitivity" : 1
+        }
+      ],
+      "TextRegExPattern" : ""
+    }
+  ],
+  "LineSpecificationArray" : null,
+  "ReferenceRegionArray" : [
+    {
+      "Localization" : {
+        "BarcodeFormatIds" : [ "DLR_BF_ALL" ],
+        "BarcodeFormatIds_2" : [ "DLR_BF2_NULL" ],
+        "BarcodeTextRegExPattern" : "",
+        "SourceType" : "DLR_LST_BARCODE"
+      },
+      "Name" : "defaultReferenceRegion",
+      "TextAreaNameArray" : [ "defaultTextArea" ]
+    }
+  ],
+  "TextAreaArray" : [
+    {
+      "CharacterModelName" : "NumberLetter",
+      "FirstPoint" : [ 0, 0 ],
+      "FourthPoint" : [ 0, 100 ],
+      "GrayscaleTransformationModes" : [
+        {
+          "LibraryFileName" : "",
+          "LibraryParameters" : "",
+          "Mode" : "DLR_GTM_ORIGINAL"
+        }
+      ],
+      "LetterHeightRange" : [ 1, 100, 1 ],
+      "LineSpecificationNameArray" : null,
+      "LineStringRegExPattern" : "",
+      "LinesCount" : 100,
+      "Name" : "defaultTextArea",
+      "SecondPoint" : [ 100, 0 ],
+      "TextAreaNameArray" : null,
+      "TextRegExPattern" : "",
+      "ThirdPoint" : [ 100, 100 ]
+    }
+  ]
+}
