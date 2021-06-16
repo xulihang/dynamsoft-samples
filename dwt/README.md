@@ -12,3 +12,10 @@ Demo Videos:
 * Demo of `Addon.Camera`:
 
     <video src="https://user-images.githubusercontent.com/5462205/122189543-99d8d100-cec3-11eb-87b8-e48380fe3d9c.mp4" data-canonical-src="https://user-images.githubusercontent.com/5462205/122189543-99d8d100-cec3-11eb-87b8-e48380fe3d9c.mp4" controls="controls" muted="muted" class="d-block rounded-bottom-2 width-fit" style="max-height:640px;"></video>
+
+## How to test it
+
+1. Clone the project
+2. Download and install [Dynamic Web TWAIN](https://www.dynamsoft.com/web-twain/downloads/). Copy the `Resources` folder to the project folder.
+3. Run the https server: `$ python https.py`
+4. Visit it at https://127.0.0.1:8000/
