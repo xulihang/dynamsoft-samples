@@ -2,6 +2,7 @@ package com.dynamsoft.dcesimplesample;
 
 import androidx.appcompat.app.AppCompatActivity;
 
+import android.annotation.SuppressLint;
 import android.content.Context;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
@@ -10,6 +11,8 @@ import android.graphics.Rect;
 import android.graphics.YuvImage;
 import android.os.Bundle;
 import android.util.Log;
+import android.view.MotionEvent;
+import android.view.View;
 import android.widget.TextView;
 import com.dynamsoft.dbr.BarcodeReader;
 import com.dynamsoft.dbr.BarcodeReaderException;
@@ -45,6 +48,7 @@ public class MainActivity extends AppCompatActivity {
     private BarcodeReader reader;
     private CameraEnhancer mCameraEnhancer;
     private TextView resultView;
+    private TextView touchView;
     private Context ctx;
     private int lastFrameId = -1;
     private Timer timer = new Timer();
@@ -58,6 +62,7 @@ public class MainActivity extends AppCompatActivity {
         initDBR();
         updateRuntimeSettings();
         initDCE();
+        setupTouchEvent();
         startScanning(2);
     }
 
@@ -83,6 +88,28 @@ public class MainActivity extends AppCompatActivity {
                 setDCECallback();
                 mCameraEnhancer.startScanning();
         }
+    }
+
+    @SuppressLint("ClickableViewAccessibility")
+    private void setupTouchEvent(){
+        touchView = findViewById(R.id.touchView);
+        touchView.setLongClickable(true);
+        touchView.setOnTouchListener(new View.OnTouchListener() {
+            @SuppressLint("ClickableViewAccessibility")
+            @Override
+            public boolean onTouch(View v, MotionEvent event) {
+                int x = -1, y = -1;
+                if (event.getAction() == MotionEvent.ACTION_UP) {
+                    x = (int) event.getX();
+                    y = (int) event.getY();
+                }
+                if (x != -1 && y != -1) {
+                    mCameraEnhancer.setManualFocusPosition(x, y);
+                    Log.d("DBR","Manual Focus");
+                }
+                return true;
+            }
+        });
     }
 
     @Override
