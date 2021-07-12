@@ -58,11 +58,31 @@ public class MainActivity extends AppCompatActivity {
         initDBR();
         updateRuntimeSettings();
         initDCE();
-        //setDCECallback();
-        //passDCEtoDBR(); //use DBR to control DCE
-        //reader.StartCameraEnhancer();
-        mCameraEnhancer.startScanning();
-        timer.scheduleAtFixedRate(task, 1000, 100); //use frame queue
+        startScanning(2);
+    }
+
+    private void startScanning(int option){
+        switch (option){
+            case 0:
+                Log.d("DBR","Option 1");
+                setDCECallback(); //Option 1: use callbacks
+                mCameraEnhancer.startScanning();
+                break;
+            case 1:
+                Log.d("DBR","Option 2");
+                passDCEtoDBR(); //Option 2: use DBR to control DCE
+                reader.StartCameraEnhancer();
+                break;
+            case 2:
+                Log.d("DBR","Option 3");
+                mCameraEnhancer.startScanning();
+                timer.scheduleAtFixedRate(task, 1000, 100); //Option 3: use frame queue
+                break;
+            default:
+                Log.d("DBR","Option Default");
+                setDCECallback();
+                mCameraEnhancer.startScanning();
+        }
     }
 
     @Override
@@ -81,7 +101,7 @@ public class MainActivity extends AppCompatActivity {
         try {
             reader = new BarcodeReader();
             com.dynamsoft.dbr.DMLTSConnectionParameters parameters = new com.dynamsoft.dbr.DMLTSConnectionParameters();
-            parameters.organizationID = "100180174";
+            parameters.organizationID = "200001";
             reader.initLicenseFromLTS(parameters, new DBRLTSLicenseVerificationListener() {
                 @Override
                 public void LTSLicenseVerificationCallback(boolean b, Exception e) {
@@ -111,7 +131,6 @@ public class MainActivity extends AppCompatActivity {
         cameraView.addOverlay();
         mCameraEnhancer.enableFastMode(true);
         mCameraEnhancer.enableAutoZoom(true);
-
     }
 
     private void passDCEtoDBR(){
