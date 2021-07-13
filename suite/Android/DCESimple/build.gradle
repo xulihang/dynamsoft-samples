@@ -16,6 +16,12 @@ allprojects {
     repositories {
         google()
         jcenter()
+        maven {
+            url "https://download.dynamsoft.com/maven/dce/aar"
+        }
+        maven{
+            url "http://download2.dynamsoft.com/maven/dbr/aar"
+        }
     }
 }
 
