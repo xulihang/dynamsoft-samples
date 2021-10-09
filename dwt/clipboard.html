@@ -73,7 +73,7 @@
         function CopySelected(){
             if (DWObject) {
                 DWObject.ConvertToBlob(
-                    [0],
+                    DWObject.CurrentImageIndexInBuffer,
                     Dynamsoft.DWT.EnumDWT_ImageType.IT_PNG,
                     function(result) {
                         CopyBlobToClipboard(result);
