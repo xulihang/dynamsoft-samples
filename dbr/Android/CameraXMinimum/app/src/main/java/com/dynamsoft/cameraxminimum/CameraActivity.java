@@ -130,7 +130,7 @@ public class CameraActivity extends AppCompatActivity {
                     sb.append("\n");
                 }
                 Log.d("DBR", sb.toString());
-                resultView.setText(sb.toString());
+                runOnUiThread(()->{resultView.setText(sb.toString());});
                 image.close();
             }
         });
