@@ -6,7 +6,7 @@ You can find another example which can be called through `Intent` [here](https:/
 
 ## Blog
 
-[Android Barcode Scanner using USB Camera][https://www.dynamsoft.com/codepool/usb-camera-android-barcode-scanner.html]
+[Android Barcode Scanner using USB Camera](https://www.dynamsoft.com/codepool/usb-camera-android-barcode-scanner.html)
 
 ## References
 
