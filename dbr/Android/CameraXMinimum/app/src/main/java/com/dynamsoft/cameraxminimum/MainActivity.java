@@ -66,6 +66,5 @@ public class MainActivity extends AppCompatActivity {
                     Toast.makeText(this, "Please grant camera permission" , Toast.LENGTH_SHORT).show();
                 }
         }
-
     }
 }
