@@ -3,7 +3,6 @@ package com.dynamsoft.cameraxminimum;
 import androidx.annotation.NonNull;
 import androidx.annotation.RequiresApi;
 import androidx.appcompat.app.AppCompatActivity;
-import androidx.camera.camera2.interop.Camera2Interop;
 import androidx.camera.core.Camera;
 import androidx.camera.core.CameraSelector;
 import androidx.camera.core.ImageAnalysis;
@@ -17,16 +16,10 @@ import androidx.lifecycle.LifecycleOwner;
 
 import android.annotation.SuppressLint;
 import android.content.res.Configuration;
-import android.graphics.Bitmap;
-import android.hardware.camera2.CaptureRequest;
-import android.media.Image;
 import android.os.Build;
 import android.os.Bundle;
 import android.util.Log;
 import android.util.Size;
-import android.view.Display;
-import android.view.Surface;
-import android.view.View;
 import android.widget.TextView;
 
 import com.dynamsoft.dbr.BarcodeReader;
