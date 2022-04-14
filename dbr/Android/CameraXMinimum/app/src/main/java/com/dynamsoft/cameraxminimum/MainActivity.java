@@ -21,19 +21,22 @@ public class MainActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
         Button enableCamera = findViewById(R.id.enableCamera);
-        Context ctx=this;
+
         enableCamera.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
                 if (hasCameraPermission()) {
-                    Intent intent = new Intent(ctx, CameraActivity.class);
-                    startActivity(intent);
+                    startScan();
                 } else {
                     requestPermission();
-                    Toast.makeText(ctx, "Please grant camera permission" , Toast.LENGTH_SHORT).show();
                 }
             }
         });
+    }
+
+    private void startScan(){
+        Intent intent = new Intent(this, CameraActivity.class);
+        startActivity(intent);
     }
 
     private boolean hasCameraPermission() {
@@ -49,5 +52,20 @@ public class MainActivity extends AppCompatActivity {
                 CAMERA_PERMISSION,
                 CAMERA_REQUEST_CODE
         );
+    }
+
+    @Override
+    public void onRequestPermissionsResult(int requestCode, String[] permissions,
+                                           int[] grantResults) {
+        switch (requestCode) {
+            case CAMERA_REQUEST_CODE:
+                if (grantResults.length > 0 &&
+                        grantResults[0] == PackageManager.PERMISSION_GRANTED) {
+                    startScan();
+                }else{
+                    Toast.makeText(this, "Please grant camera permission" , Toast.LENGTH_SHORT).show();
+                }
+        }
+
     }
 }

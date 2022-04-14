@@ -16,6 +16,7 @@ import androidx.core.content.ContextCompat;
 import androidx.lifecycle.LifecycleOwner;
 
 import android.annotation.SuppressLint;
+import android.content.res.Configuration;
 import android.graphics.Bitmap;
 import android.hardware.camera2.CaptureRequest;
 import android.media.Image;
@@ -30,6 +31,7 @@ import android.widget.TextView;
 
 import com.dynamsoft.dbr.BarcodeReader;
 import com.dynamsoft.dbr.BarcodeReaderException;
+import com.dynamsoft.dbr.DBRLicenseVerificationListener;
 import com.dynamsoft.dbr.EnumImagePixelFormat;
 import com.dynamsoft.dbr.TextResult;
 import com.google.common.util.concurrent.ListenableFuture;
@@ -52,24 +54,11 @@ public class CameraActivity extends AppCompatActivity {
         setContentView(R.layout.activity_camera);
         previewView = findViewById(R.id.previewView);
         resultView = findViewById(R.id.resultView);
+        initDBR();
         exec = Executors.newSingleThreadExecutor();
-        try {
-            dbr = new BarcodeReader();
-        } catch (BarcodeReaderException e) {
-            e.printStackTrace();
-        }
-        DMLTSConnectionParameters parameters = new DMLTSConnectionParameters();
-        parameters.organizationID = "200001";
-        dbr.initLicenseFromLTS(parameters, new DBRLTSLicenseVerificationListener() {
-            @Override
-            public void LTSLicenseVerificationCallback(boolean isSuccess, Exception error) {
-                if (!isSuccess) {
-                    error.printStackTrace();
-                }
-            }
-        });
         cameraProviderFuture = ProcessCameraProvider.getInstance(this);
         cameraProviderFuture.addListener(new Runnable() {
+            @RequiresApi(api = Build.VERSION_CODES.R)
             @Override
             public void run() {
                 try {
@@ -83,11 +72,31 @@ public class CameraActivity extends AppCompatActivity {
 
     }
 
+    private void initDBR(){
+        BarcodeReader.initLicense("DLS2eyJvcmdhbml6YXRpb25JRCI6IjIwMDAwMSJ9", new DBRLicenseVerificationListener() {
+            @Override
+            public void DBRLicenseVerificationCallback(boolean isSuccessful, Exception e) {
+                if (!isSuccessful) {
+                    e.printStackTrace();
+                }
+            }
+        });
+        try {
+            dbr = new BarcodeReader();
+        } catch (BarcodeReaderException e) {
+            e.printStackTrace();
+        }
+    }
+
+    @RequiresApi(api = Build.VERSION_CODES.R)
     @SuppressLint("UnsafeExperimentalUsageError")
     private void bindPreviewAndImageAnalysis(@NonNull ProcessCameraProvider cameraProvider) {
-        Size resolution = new Size(720, 1280);
-        Display d = getDisplay();
-        if (d.getRotation()!= Surface.ROTATION_0){
+
+        int orientation = getApplicationContext().getResources().getConfiguration().orientation;
+        Size resolution;
+        if (orientation == Configuration.ORIENTATION_PORTRAIT) {
+            resolution = new Size(720, 1280);
+        }else{
             resolution = new Size(1280, 720);
         }
 
@@ -97,8 +106,9 @@ public class CameraActivity extends AppCompatActivity {
 
         ImageAnalysis.Builder imageAnalysisBuilder=new ImageAnalysis.Builder();
 
-        Camera2Interop.Extender ext = new Camera2Interop.Extender<>(imageAnalysisBuilder);
-        ext.setCaptureRequestOption(CaptureRequest.CONTROL_EFFECT_MODE,CaptureRequest.CONTROL_EFFECT_MODE_NEGATIVE);
+        //invert
+        //Camera2Interop.Extender ext = new Camera2Interop.Extender<>(imageAnalysisBuilder);
+        //ext.setCaptureRequestOption(CaptureRequest.CONTROL_EFFECT_MODE,CaptureRequest.CONTROL_EFFECT_MODE_NEGATIVE);
 
         imageAnalysisBuilder.setTargetResolution(resolution)
                 .setBackpressureStrategy(ImageAnalysis.STRATEGY_KEEP_ONLY_LATEST);
@@ -119,7 +129,7 @@ public class CameraActivity extends AppCompatActivity {
                 buffer.get(bytes);
                 ImageData imageData= new ImageData(bytes,image.getWidth(), image.getHeight(),nRowStride *nPixelStride);
                 try {
-                    results = dbr.decodeBuffer(imageData.mBytes,imageData.mWidth,imageData.mHeight, imageData.mStride, EnumImagePixelFormat.IPF_NV21,"");
+                    results = dbr.decodeBuffer(imageData.mBytes,imageData.mWidth,imageData.mHeight, imageData.mStride, EnumImagePixelFormat.IPF_NV21);
                 } catch (BarcodeReaderException e) {
                     e.printStackTrace();
                 }
@@ -137,7 +147,7 @@ public class CameraActivity extends AppCompatActivity {
 
         CameraSelector cameraSelector = new CameraSelector.Builder()
                 .requireLensFacing(CameraSelector.LENS_FACING_BACK).build();
-        preview.setSurfaceProvider(previewView.createSurfaceProvider());
+        preview.setSurfaceProvider(previewView.getSurfaceProvider());
 
         UseCaseGroup useCaseGroup = new UseCaseGroup.Builder()
                 .addUseCase(preview)
