@@ -16,17 +16,20 @@ import androidx.lifecycle.LifecycleOwner;
 
 import android.annotation.SuppressLint;
 import android.content.res.Configuration;
+import android.graphics.Bitmap;
 import android.os.Build;
 import android.os.Bundle;
 import android.util.Log;
 import android.util.Size;
 import android.widget.TextView;
 
-import com.dynamsoft.dbr.BarcodeReader;
-import com.dynamsoft.dbr.BarcodeReaderException;
-import com.dynamsoft.dbr.DBRLicenseVerificationListener;
-import com.dynamsoft.dbr.EnumImagePixelFormat;
-import com.dynamsoft.dbr.TextResult;
+import com.dynamsoft.core.basic_structures.CapturedResultItem;
+import com.dynamsoft.core.basic_structures.EnumImagePixelFormat;
+import com.dynamsoft.core.basic_structures.ImageData;
+import com.dynamsoft.cvr.CaptureVisionRouter;
+import com.dynamsoft.cvr.CapturedResult;
+import com.dynamsoft.cvr.EnumPresetTemplate;
+import com.dynamsoft.dbr.BarcodeResultItem;
 import com.google.common.util.concurrent.ListenableFuture;
 
 import java.nio.ByteBuffer;
@@ -40,14 +43,14 @@ public class CameraActivity extends AppCompatActivity {
     private TextView resultView;
     private ExecutorService exec;
     private Camera camera;
-    private BarcodeReader dbr;
+    private CaptureVisionRouter cvr;
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_camera);
+        cvr = new CaptureVisionRouter(getApplicationContext());
         previewView = findViewById(R.id.previewView);
         resultView = findViewById(R.id.resultView);
-        initDBR();
         exec = Executors.newSingleThreadExecutor();
         cameraProviderFuture = ProcessCameraProvider.getInstance(this);
         cameraProviderFuture.addListener(new Runnable() {
@@ -63,22 +66,6 @@ public class CameraActivity extends AppCompatActivity {
             }
         }, ContextCompat.getMainExecutor(this));
 
-    }
-
-    private void initDBR(){
-        BarcodeReader.initLicense("DLS2eyJoYW5kc2hha2VDb2RlIjoiMjAwMDAxLTE2NDk4Mjk3OTI2MzUiLCJvcmdhbml6YXRpb25JRCI6IjIwMDAwMSIsInNlc3Npb25QYXNzd29yZCI6IndTcGR6Vm05WDJrcEQ5YUoifQ==", new DBRLicenseVerificationListener() {
-            @Override
-            public void DBRLicenseVerificationCallback(boolean isSuccessful, Exception e) {
-                if (!isSuccessful) {
-                    e.printStackTrace();
-                }
-            }
-        });
-        try {
-            dbr = new BarcodeReader();
-        } catch (BarcodeReaderException e) {
-            e.printStackTrace();
-        }
     }
 
     @RequiresApi(api = Build.VERSION_CODES.R)
@@ -112,28 +99,34 @@ public class CameraActivity extends AppCompatActivity {
             @RequiresApi(api = Build.VERSION_CODES.O)
             @Override
             public void analyze(@NonNull ImageProxy image) {
-                int rotationDegrees =image.getImageInfo().getRotationDegrees();
-                TextResult[] results = null;
+                CapturedResult capturedResult = null;
                 ByteBuffer buffer = image.getPlanes()[0].getBuffer();
                 int nRowStride = image.getPlanes()[0].getRowStride();
                 int nPixelStride = image.getPlanes()[0].getPixelStride();
-                int length= buffer.remaining();
-                byte[] bytes= new byte[length];
+                int length = buffer.remaining();
+                byte[] bytes = new byte[length];
                 buffer.get(bytes);
-                ImageData imageData= new ImageData(bytes,image.getWidth(), image.getHeight(),nRowStride *nPixelStride);
-                try {
-                    results = dbr.decodeBuffer(imageData.mBytes,imageData.mWidth,imageData.mHeight, imageData.mStride, EnumImagePixelFormat.IPF_NV21);
-                } catch (BarcodeReaderException e) {
-                    e.printStackTrace();
-                }
+                ImageData imageData = new ImageData();
+                imageData.bytes = bytes;
+                imageData.width = image.getWidth();
+                imageData.height = image.getHeight();
+                imageData.stride = nRowStride*nPixelStride;
+                imageData.format = EnumImagePixelFormat.IPF_NV21;
+                capturedResult = cvr.capture(imageData, EnumPresetTemplate.PT_READ_BARCODES);
+                CapturedResultItem[] results = capturedResult.getItems();
                 StringBuilder sb = new StringBuilder();
                 sb.append("Found ").append(results.length).append(" barcode(s):\n");
-                for (int i = 0; i < results.length; i++) {
-                    sb.append(results[i].barcodeText);
-                    sb.append("\n");
+                if (results != null) {
+                    for (CapturedResultItem result:results) {
+                        if (result instanceof BarcodeResultItem) {
+                            BarcodeResultItem barcodeResult = (BarcodeResultItem) result;
+                            sb.append(barcodeResult.getText());
+                            sb.append("\n");
+                            Log.d("DBR", sb.toString());
+                            runOnUiThread(()->{resultView.setText(sb.toString());});
+                        }
+                    }
                 }
-                Log.d("DBR", sb.toString());
-                runOnUiThread(()->{resultView.setText(sb.toString());});
                 image.close();
             }
         });
@@ -147,16 +140,5 @@ public class CameraActivity extends AppCompatActivity {
                 .addUseCase(imageAnalysis)
                 .build();
         camera=cameraProvider.bindToLifecycle((LifecycleOwner)this, cameraSelector, useCaseGroup);
-    }
-
-    private class ImageData{
-        private int mWidth,mHeight,mStride;
-        byte[] mBytes;
-        ImageData(byte[] bytes ,int nWidth,int nHeight,int nStride){
-            mBytes = bytes;
-            mWidth = nWidth;
-            mHeight = nHeight;
-            mStride = nStride;
-        }
     }
 }

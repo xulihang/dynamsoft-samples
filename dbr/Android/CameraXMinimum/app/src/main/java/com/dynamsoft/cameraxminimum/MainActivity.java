@@ -9,9 +9,12 @@ import android.content.Context;
 import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.os.Bundle;
+import android.util.Log;
 import android.view.View;
 import android.widget.Button;
 import android.widget.Toast;
+
+import com.dynamsoft.license.LicenseManager;
 
 public class MainActivity extends AppCompatActivity {
     private static final String[] CAMERA_PERMISSION = new String[]{Manifest.permission.CAMERA};
@@ -21,7 +24,7 @@ public class MainActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
         Button enableCamera = findViewById(R.id.enableCamera);
-
+        initLicense();
         enableCamera.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
@@ -30,6 +33,17 @@ public class MainActivity extends AppCompatActivity {
                 } else {
                     requestPermission();
                 }
+            }
+        });
+    }
+
+    private void initLicense(){
+        String license = "DLS2eyJoYW5kc2hha2VDb2RlIjoiMjAwMDAxLTE2NDk4Mjk3OTI2MzUiLCJvcmdhbml6YXRpb25JRCI6IjIwMDAwMSIsInNlc3Npb25QYXNzd29yZCI6IndTcGR6Vm05WDJrcEQ5YUoifQ==";
+        LicenseManager.initLicense(license, getApplicationContext(), (isSuccess, error) -> {
+            if (!isSuccess) {
+                Log.e("DBR", "InitLicense Error: " + error);
+            }else{
+                Log.d("DBR","license valid");
             }
         });
     }
